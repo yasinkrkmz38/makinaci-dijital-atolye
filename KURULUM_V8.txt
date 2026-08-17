@@ -1,0 +1,6 @@
+MAKİNACI DİJİTAL ATÖLYE V8
+1) Bu klasörde CMD aç.
+2) npm install
+3) npm start
+4) Chrome: http://localhost:3010
+V8 ana sayfa, hesaplama araçları, arıza teşhis ve teknik kütüphane içerir.
