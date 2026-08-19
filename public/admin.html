@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080d12"><title>Dijital Makinacı • Admin Center V16</title><link rel="stylesheet" href="/admin.css?v=16.0.0"></head>
+<body>
+<div id="adminGate" class="gate"><div class="gateCard"><div class="shield">🛡</div><h1>Admin Center</h1><p>Platform yetkisi doğrulanıyor…</p></div></div>
+<div id="adminApp" class="adminApp hide">
+<aside class="adminSide">
+  <a href="/" class="adminBrand"><span>⚙</span><div><b>DİJİTAL MAKİNACI</b><small>ADMIN CENTER • V16</small></div></a>
+  <div class="sideTitle">PLATFORM</div>
+  <nav>
+    <button class="adminNav active" data-page="overview">⌂ <span>Genel Bakış</span></button>
+    <button class="adminNav" data-page="users">👤 <span>Kullanıcılar</span></button>
+    <button class="adminNav" data-page="companies">🏢 <span>Firmalar</span></button>
+    <button class="adminNav" data-page="machines">🏭 <span>Makineler</span></button>
+  </nav>
+  <div class="sideTitle">OPERASYON</div>
+  <nav>
+    <button class="adminNav" data-page="faults">⚠ <span>Arızalar</span><i id="sideCritical" class="sideBadge hide">0</i></button>
+    <button class="adminNav" data-page="maintenance">🔧 <span>Bakımlar</span></button>
+    <button class="adminNav" data-page="workorders">📋 <span>İş Emirleri</span></button>
+    <button class="adminNav" data-page="support">💬 <span>Destek</span></button>
+  </nav>
+  <div class="sideTitle">YÖNETİM</div>
+  <nav>
+    <button class="adminNav" data-page="content">▤ <span>Teknik İçerikler</span></button>
+    <button class="adminNav" data-page="announcements">📣 <span>Duyurular</span></button>
+    <button class="adminNav" data-page="logs">≡ <span>Admin Logları</span></button>
+    <button class="adminNav" data-page="security">🔒 <span>Güvenlik</span></button>
+    <button class="adminNav" data-page="settings">⚙ <span>Sistem Ayarları</span></button>
+  </nav>
+  <div class="adminSideUser"><div id="adminAvatar" class="avatar">AD</div><div><b id="adminName">—</b><small>Platform Admin</small></div><button onclick="adminLogout()" title="Çıkış">↪</button></div>
+</aside>
+<main class="adminMain">
+<header class="adminTop"><div><span class="crumb">DİJİTAL MAKİNACI / PLATFORM</span><h1 id="adminPageTitle">Genel Bakış</h1></div><div class="adminTopActions"><button class="ghost" onclick="location.href='/'">← Kullanıcı Paneli</button><button class="iconBtn" onclick="refreshCurrent()" title="Yenile">↻</button><div class="statusChip"><i></i><span>YÖNETİM AKTİF</span></div></div></header>
+
+<section id="overview" class="adminPage active">
+  <div class="heroAdmin"><div><span class="tag red">PLATFORM CONTROL</span><h2>Sistemin tamamını<br><em>tek merkezden yönet.</em></h2><p>Kullanıcılar, firmalar, kritik arızalar, güvenlik olayları ve sistem ayarları canlı görünümde.</p></div><div class="heroPulse"><span></span><b>V16</b><small>ADMIN CENTER</small></div></div>
+  <div class="kpiAdminGrid">
+    <button onclick="openPage('users')" class="akpi"><small>TOPLAM KULLANICI</small><b id="ovUsers">0</b><span id="ovUsersDelta">+0 / 7 gün</span></button>
+    <button onclick="openPage('companies')" class="akpi"><small>FİRMA</small><b id="ovCompanies">0</b><span id="ovCompaniesDelta">+0 / 7 gün</span></button>
+    <button onclick="openPage('machines')" class="akpi"><small>MAKİNE</small><b id="ovMachines">0</b><span>platform geneli</span></button>
+    <button onclick="openPage('faults')" class="akpi danger"><small>KRİTİK ARIZA</small><b id="ovCritical">0</b><span id="ovOpenFaults">0 açık arıza</span></button>
+    <button onclick="openPage('maintenance')" class="akpi warn"><small>GECİKMİŞ BAKIM</small><b id="ovOverdue">0</b><span>aksiyon gerekli</span></button>
+    <button onclick="openPage('workorders')" class="akpi"><small>AÇIK İŞ EMRİ</small><b id="ovWork">0</b><span>platform geneli</span></button>
+    <button onclick="openPage('security')" class="akpi danger"><small>HATALI GİRİŞ / 24S</small><b id="ovFailed">0</b><span>güvenlik olayı</span></button>
+    <div class="akpi"><small>DOSYA DEPOLAMA</small><b id="ovStorage">0 MB</b><span>PostgreSQL belge verisi</span></div>
+  </div>
+  <div class="dash2"><div class="panel"><div class="panelHead"><div><small>30 GÜN</small><h3>Yeni kullanıcı trendi</h3></div></div><div id="userTrend" class="miniChart"></div></div><div class="panel"><div class="panelHead"><div><small>14 GÜN</small><h3>Giriş trafiği</h3></div></div><div id="loginTrend" class="miniChart dual"></div></div></div>
+  <div class="dash2"><div class="panel"><div class="panelHead"><div><small>CANLI RİSK</small><h3>Kritik ve yüksek arızalar</h3></div><button class="textBtn" onclick="openPage('faults')">Tümünü gör →</button></div><div id="criticalList" class="feed"></div></div><div class="panel"><div class="panelHead"><div><small>YÖNETİM HAREKETİ</small><h3>Son admin işlemleri</h3></div><button class="textBtn" onclick="openPage('logs')">Logları aç →</button></div><div id="recentAdmin" class="feed"></div></div></div>
+</section>
+
+<section id="users" class="adminPage"><div class="pageHead"><div><span class="tag">KULLANICI YÖNETİMİ</span><h2>Hesaplar ve platform yetkileri</h2><p>Hesap durumunu, firma üyeliklerini ve platform admin yetkisini yönet.</p></div></div><div class="toolbar"><input id="userSearch" placeholder="Ad veya e-posta ara…" oninput="debounce('users')"><select id="userStatus" onchange="loadUsers()"><option value="">Tüm durumlar</option><option value="active">Aktif</option><option value="inactive">Pasif</option></select><select id="userAdminFilter" onchange="loadUsers()"><option value="">Tüm yetkiler</option><option value="yes">Platform Admin</option><option value="no">Normal kullanıcı</option></select><button class="ghost" onclick="loadUsers()">Yenile</button></div><div class="panel tablePanel"><div class="tableScroll"><table><thead><tr><th>Kullanıcı</th><th>Yetki</th><th>Firma</th><th>Makine</th><th>Arıza</th><th>Son giriş</th><th>Durum</th><th></th></tr></thead><tbody id="userTable"></tbody></table></div></div></section>
+
+<section id="companies" class="adminPage"><div class="pageHead"><div><span class="tag">FİRMA YÖNETİMİ</span><h2>Tüm çalışma alanları</h2><p>Firma sahibi, ekip, makine ve açık operasyon sayılarını görüntüle.</p></div></div><div class="toolbar"><input id="companySearch" placeholder="Firma, kod veya sahip e-postası…" oninput="debounce('companies')"><button class="ghost" onclick="loadCompanies()">Yenile</button></div><div id="companyCards" class="companyAdminGrid"></div></section>
+
+<section id="machines" class="adminPage"><div class="pageHead"><div><span class="tag">VARLIK ENVANTERİ</span><h2>Platformdaki tüm makineler</h2><p>Firma, durum, kritik seviye, açık arıza ve gecikmiş bakım görünümü.</p></div></div><div class="toolbar"><input id="machineSearchAdmin" placeholder="Makine, marka, model, seri no, firma…" oninput="debounce('machines')"><select id="machineStatusAdmin" onchange="loadAdminMachines()"><option value="">Tüm durumlar</option><option>Çalışıyor</option><option>Bakımda</option><option>Arızalı</option><option>Beklemede</option><option>Devre dışı</option></select></div><div class="panel tablePanel"><div class="tableScroll"><table><thead><tr><th>Makine</th><th>Firma</th><th>Durum</th><th>Kritiklik</th><th>Saat</th><th>Açık arıza</th><th>Gecikmiş bakım</th></tr></thead><tbody id="machineAdminTable"></tbody></table></div></div></section>
+
+<section id="faults" class="adminPage"><div class="pageHead"><div><span class="tag red">ARIZA MERKEZİ</span><h2>Platform arıza akışı</h2><p>Kritik arızaları ve uzun duruşları firma bağımsız izleyin.</p></div></div><div class="toolbar"><input id="faultSearchAdmin" placeholder="Belirti, sistem, makine veya firma…" oninput="debounce('faults')"><select id="faultStatusAdmin" onchange="loadAdminFaults()"><option value="">Tüm durumlar</option><option value="open">Açık</option><option value="closed">Kapalı</option></select><select id="faultSeverityAdmin" onchange="loadAdminFaults()"><option value="">Tüm seviyeler</option><option>Kritik</option><option>Yüksek</option><option>Orta</option><option>Düşük</option></select></div><div class="panel tablePanel"><div class="tableScroll"><table><thead><tr><th>Arıza</th><th>Firma / Makine</th><th>Sistem</th><th>Seviye</th><th>Durum</th><th>Duruş</th><th>Tarih</th></tr></thead><tbody id="faultAdminTable"></tbody></table></div></div></section>
+
+<section id="maintenance" class="adminPage"><div class="pageHead"><div><span class="tag">BAKIM MERKEZİ</span><h2>Bakım operasyonları</h2><p>Açık, gecikmiş ve tamamlanmış bakım kayıtlarını tüm firmalarda takip et.</p></div></div><div class="toolbar"><input id="maintSearchAdmin" placeholder="Bakım, makine veya firma…" oninput="debounce('maintenance')"><select id="maintStatusAdmin" onchange="loadAdminMaintenance()"><option value="">Tüm durumlar</option><option value="open">Açık</option><option value="done">Tamamlandı</option></select></div><div class="panel tablePanel"><div class="tableScroll"><table><thead><tr><th>Görev</th><th>Firma / Makine</th><th>Tür</th><th>Öncelik</th><th>Termin</th><th>Durum</th><th>Maliyet</th></tr></thead><tbody id="maintAdminTable"></tbody></table></div></div></section>
+
+<section id="workorders" class="adminPage"><div class="pageHead"><div><span class="tag">İŞ EMİRLERİ</span><h2>Platform iş yükü</h2><p>Termin, atanan kişi, maliyet ve duruş süresiyle tüm iş emirleri.</p></div></div><div class="toolbar"><input id="workSearchAdmin" placeholder="İş emri, makine, atanan veya firma…" oninput="debounce('workorders')"><select id="workStatusAdmin" onchange="loadAdminWork()"><option value="">Tüm durumlar</option><option value="open">Açık</option><option value="in_progress">İşlemde</option><option value="waiting">Bekliyor</option><option value="done">Tamamlandı</option></select></div><div class="panel tablePanel"><div class="tableScroll"><table><thead><tr><th>İş emri</th><th>Firma / Makine</th><th>Öncelik</th><th>Atanan</th><th>Termin</th><th>Durum</th><th>Maliyet</th></tr></thead><tbody id="workAdminTable"></tbody></table></div></div></section>
+
+<section id="content" class="adminPage"><div class="pageHead"><div><span class="tag">İÇERİK YÖNETİMİ</span><h2>Teknik kütüphane editörü</h2><p>Kod değiştirmeden yeni teknik içerik oluştur, yayınla veya gizle.</p></div><button class="primary" onclick="articleModal()">+ Yeni içerik</button></div><div id="articleAdminGrid" class="contentGrid"></div></section>
+
+<section id="announcements" class="adminPage"><div class="pageHead"><div><span class="tag">DUYURU MERKEZİ</span><h2>Kullanıcılara platform duyurusu</h2><p>Bilgi, bakım, kritik uyarı ve yayın süresi kontrollü mesajlar gönder.</p></div><button class="primary" onclick="announcementModal()">+ Yeni duyuru</button></div><div id="announcementGrid" class="contentGrid"></div></section>
+
+<section id="support" class="adminPage"><div class="pageHead"><div><span class="tag">DESTEK MERKEZİ</span><h2>Kullanıcı talepleri</h2><p>Destek kayıtlarını öncelik ve durumla takip et.</p></div></div><div id="supportList" class="supportGrid"></div></section>
+
+<section id="logs" class="adminPage"><div class="pageHead"><div><span class="tag">DENETİM İZİ</span><h2>Admin işlem logları</h2><p>Hangi adminin neyi, ne zaman ve hangi IP’den değiştirdiğini gör.</p></div><button class="ghost" onclick="loadLogs()">Yenile</button></div><div id="adminLogList" class="logList panel"></div></section>
+
+<section id="security" class="adminPage"><div class="pageHead"><div><span class="tag red">GÜVENLİK</span><h2>Giriş olayları ve risk görünümü</h2><p>Başarılı/başarısız oturum denemeleri, IP ve hesap durumları.</p></div></div><div class="securityKpis"><div><small>BAŞARILI / 24S</small><b id="secSuccess">0</b></div><div class="danger"><small>BAŞARISIZ / 24S</small><b id="secFailed">0</b></div><div><small>HATALI IP / 24S</small><b id="secIps">0</b></div><div><small>PASİF HESAP</small><b id="secBlocked">0</b></div></div><div class="panel tablePanel"><div class="tableScroll"><table><thead><tr><th>Zaman</th><th>Kullanıcı</th><th>Sonuç</th><th>Neden</th><th>IP</th><th>İstemci</th></tr></thead><tbody id="securityTable"></tbody></table></div></div></section>
+
+<section id="settings" class="adminPage"><div class="pageHead"><div><span class="tag">SİSTEM AYARLARI</span><h2>Platform davranışı</h2><p>Kayıt, bakım modu, marka ve destek bilgilerini merkezi olarak yönet.</p></div></div><div class="settingsGrid"><div class="panel formPanel"><div class="field"><label>Site adı</label><input id="setSiteName"></div><div class="field"><label>Destek e-postası</label><input id="setSupportEmail" type="email" placeholder="destek@..."></div><label class="switchRow"><span><b>Yeni kullanıcı kaydı</b><small>Kayıt formundan yeni hesap açılabilsin.</small></span><input id="setRegistration" type="checkbox"><i></i></label><label class="switchRow dangerSwitch"><span><b>Bakım modu</b><small>Normal kullanıcıları geçici olarak sistem dışında tutar. Platform adminleri erişebilir.</small></span><input id="setMaintenance" type="checkbox"><i></i></label><label class="switchRow"><span><b>Dosya yükleme</b><small>Makine fotoğraf ve belgeleri için genel izin.</small></span><input id="setUploads" type="checkbox"><i></i></label><button class="primary wide" onclick="saveSettings()">Ayarları kaydet →</button></div><div class="panel settingsInfo"><span class="bigShield">🛡</span><h3>Platform Admin güvenlik sınırı</h3><p>Firma yöneticileri bu sayfaya erişemez. Yönetim API’leri sunucu tarafında <b>platform_admin</b> yetkisi ile doğrulanır.</p><div class="rule"><b>Bakım modu</b><span>Açıldığında mevcut normal oturumlar da API erişiminde 503 alır.</span></div><div class="rule"><b>Kayıt kapatma</b><span>Yeni kayıtları durdurur; mevcut hesaplar etkilenmez.</span></div><div class="rule"><b>Admin işlemleri</b><span>Kullanıcı yetkisi, durum değişimi, içerik ve ayar işlemleri loglanır.</span></div></div></div></section>
+</main></div>
+<div id="adminModal" class="modal hide" onclick="modalBack(event)"><div id="adminModalCard" class="modalCard"></div></div>
+<div id="adminToast" class="toast"></div>
+<script src="/admin.js?v=16.0.0"></script></body></html>
