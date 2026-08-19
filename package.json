@@ -1,6 +1,6 @@
 {
-  "name": "dijitalmakinaci-v14-akilli-atolye",
-  "version": "14.0.0",
+  "name": "dijitalmakinaci-v15-pro-cmms",
+  "version": "15.0.0",
   "private": true,
   "scripts": {
     "start": "node server.js"
