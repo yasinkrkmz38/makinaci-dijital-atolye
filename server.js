@@ -11,201 +11,74 @@ const app=express();
 const PORT=process.env.PORT||3000;
 const JWT_SECRET=process.env.JWT_SECRET||"DEVELOPMENT_ONLY_CHANGE_ME";
 const DATABASE_URL=process.env.DATABASE_URL;
+if(!DATABASE_URL){console.error("DATABASE_URL tanımlı değil.");process.exit(1)}
+const pool=new Pool({connectionString:DATABASE_URL,ssl:process.env.NODE_ENV==="production"?{rejectUnauthorized:false}:false});
+app.set("trust proxy",1);app.use(helmet({contentSecurityPolicy:false}));app.use(express.json({limit:"500kb"}));app.use(cookieParser());app.use(express.static(path.join(__dirname,"public"),{maxAge:"1h"}));app.use("/api/auth",rateLimit({windowMs:15*60*1000,max:60,standardHeaders:true,legacyHeaders:false}));
 
-if(!DATABASE_URL){
-  console.error("DATABASE_URL tanımlı değil.");
-  process.exit(1);
-}
-
-const pool=new Pool({
-  connectionString:DATABASE_URL,
-  ssl: process.env.NODE_ENV==="production" ? {rejectUnauthorized:false} : false
-});
-
-app.set("trust proxy",1);
-app.use(helmet({contentSecurityPolicy:false}));
-app.use(express.json({limit:"300kb"}));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname,"public"),{maxAge:"1h"}));
-
-const authLimiter=rateLimit({windowMs:15*60*1000,max:60,standardHeaders:true,legacyHeaders:false});
-app.use("/api/auth",authLimiter);
-
-async function q(text,params=[]){return pool.query(text,params)}
-function sign(user){return jwt.sign({id:user.id,email:user.email,name:user.name,role:user.role},JWT_SECRET,{expiresIn:"7d"})}
-function setCookie(res,token){res.cookie("dm_token",token,{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",maxAge:7*24*60*60*1000})}
-function auth(req,res,next){
-  const token=req.cookies.dm_token;
-  if(!token)return res.status(401).json({error:"Giriş gerekli"});
-  try{req.user=jwt.verify(token,JWT_SECRET);next()}catch{res.clearCookie("dm_token");res.status(401).json({error:"Oturum geçersiz"})}
-}
-function admin(req,res,next){if(req.user?.role!=="admin")return res.status(403).json({error:"Admin yetkisi gerekli"});next()}
 const clean=s=>String(s??"").trim();
+const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
+const nil=v=>clean(v)||null;
 const emailOk=s=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+async function q(text,params=[]){return pool.query(text,params)}
+function sign(u){return jwt.sign({id:u.id,email:u.email,name:u.name,role:u.role},JWT_SECRET,{expiresIn:"7d"})}
+function setCookie(res,t){res.cookie("dm_token",t,{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",maxAge:7*24*60*60*1000})}
+function auth(req,res,next){const t=req.cookies.dm_token;if(!t)return res.status(401).json({error:"Giriş gerekli"});try{req.user=jwt.verify(t,JWT_SECRET);next()}catch{res.clearCookie("dm_token");res.status(401).json({error:"Oturum geçersiz"})}}
+function admin(req,res,next){if(req.user?.role!=="admin")return res.status(403).json({error:"Admin yetkisi gerekli"});next()}
 
+async function addCols(table,cols){for(const c of cols)await q(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${c}`)}
 async function initDb(){
- await q(`CREATE TABLE IF NOT EXISTS users(
-   id BIGSERIAL PRIMARY KEY,
-   name VARCHAR(120) NOT NULL,
-   email VARCHAR(200) UNIQUE NOT NULL,
-   password_hash TEXT NOT NULL,
-   role VARCHAR(20) NOT NULL DEFAULT 'user',
-   is_active BOOLEAN NOT NULL DEFAULT TRUE,
-   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
- )`);
- await q(`CREATE TABLE IF NOT EXISTS machines(
-   id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-   name VARCHAR(160) NOT NULL,model VARCHAR(160) DEFAULT '',hours NUMERIC(12,1) DEFAULT 0,
-   criticality VARCHAR(30) DEFAULT 'Normal',serial_no VARCHAR(120) DEFAULT '',note TEXT DEFAULT '',
-   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
- )`);
- await q(`CREATE TABLE IF NOT EXISTS maintenance(
-   id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-   machine_id BIGINT REFERENCES machines(id) ON DELETE CASCADE,task VARCHAR(220) NOT NULL,
-   due_date DATE NOT NULL,priority VARCHAR(30) DEFAULT 'Normal',status VARCHAR(20) DEFAULT 'open',
-   note TEXT DEFAULT '',completed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
- )`);
- await q(`CREATE TABLE IF NOT EXISTS faults(
-   id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-   machine_id BIGINT REFERENCES machines(id) ON DELETE SET NULL,system VARCHAR(40),symptom VARCHAR(180) NOT NULL,
-   measurements JSONB DEFAULT '{}'::jsonb,note TEXT DEFAULT '',diagnosis TEXT DEFAULT '',
-   status VARCHAR(20) DEFAULT 'open',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
- )`);
- await q(`CREATE TABLE IF NOT EXISTS favorites(
-   id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-   article_key VARCHAR(180) NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-   UNIQUE(user_id,article_key)
- )`);
- await q(`CREATE TABLE IF NOT EXISTS calc_history(
-   id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-   tool VARCHAR(120) NOT NULL,input_data JSONB DEFAULT '{}'::jsonb,result TEXT NOT NULL,
-   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
- )`);
- const adminEmail=clean(process.env.ADMIN_EMAIL).toLowerCase();
- const adminPassword=clean(process.env.ADMIN_PASSWORD);
- if(adminEmail && adminPassword){
-   const found=await q("SELECT id FROM users WHERE email=$1",[adminEmail]);
-   if(!found.rows.length){
-     const hash=await bcrypt.hash(adminPassword,12);
-     await q("INSERT INTO users(name,email,password_hash,role) VALUES($1,$2,$3,'admin')",[process.env.ADMIN_NAME||"Site Yöneticisi",adminEmail,hash]);
-     console.log("Admin hesabı oluşturuldu:",adminEmail);
-   } else {
-     await q("UPDATE users SET role='admin' WHERE email=$1",[adminEmail]);
-   }
- }
+ await q(`CREATE TABLE IF NOT EXISTS users(id BIGSERIAL PRIMARY KEY,name VARCHAR(120) NOT NULL,email VARCHAR(200) UNIQUE NOT NULL,password_hash TEXT NOT NULL,role VARCHAR(20) NOT NULL DEFAULT 'user',is_active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await q(`CREATE TABLE IF NOT EXISTS machines(id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,name VARCHAR(160) NOT NULL,model VARCHAR(160) DEFAULT '',hours NUMERIC(12,1) DEFAULT 0,criticality VARCHAR(30) DEFAULT 'Normal',serial_no VARCHAR(120) DEFAULT '',note TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await addCols("machines",["manufacturer VARCHAR(160) DEFAULT ''","category VARCHAR(100) DEFAULT ''","location VARCHAR(180) DEFAULT ''","status VARCHAR(30) DEFAULT 'Çalışıyor'","power_kw NUMERIC(10,2) DEFAULT 0","year INTEGER","last_maintenance_date DATE","next_maintenance_date DATE","lubricant VARCHAR(180) DEFAULT ''","bearing_info TEXT DEFAULT ''","belt_info TEXT DEFAULT ''","motor_info TEXT DEFAULT ''"]);
+ await q(`CREATE TABLE IF NOT EXISTS maintenance(id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,machine_id BIGINT REFERENCES machines(id) ON DELETE CASCADE,task VARCHAR(220) NOT NULL,due_date DATE NOT NULL,priority VARCHAR(30) DEFAULT 'Normal',status VARCHAR(20) DEFAULT 'open',note TEXT DEFAULT '',completed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await addCols("maintenance",["maintenance_type VARCHAR(50) DEFAULT 'Periyodik'","frequency VARCHAR(80) DEFAULT ''","technician VARCHAR(160) DEFAULT ''","parts_used TEXT DEFAULT ''","cost NUMERIC(12,2) DEFAULT 0","duration_min INTEGER DEFAULT 0","meter_hours NUMERIC(12,1) DEFAULT 0"]);
+ await q(`CREATE TABLE IF NOT EXISTS faults(id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,machine_id BIGINT REFERENCES machines(id) ON DELETE SET NULL,system VARCHAR(40),symptom VARCHAR(180) NOT NULL,measurements JSONB DEFAULT '{}'::jsonb,note TEXT DEFAULT '',diagnosis TEXT DEFAULT '',status VARCHAR(20) DEFAULT 'open',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await addCols("faults",["severity VARCHAR(30) DEFAULT 'Orta'","root_cause TEXT DEFAULT ''","action_taken TEXT DEFAULT ''","downtime_min INTEGER DEFAULT 0","closed_at TIMESTAMPTZ"]);
+ await q(`CREATE TABLE IF NOT EXISTS parts(id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,name VARCHAR(180) NOT NULL,part_code VARCHAR(120) DEFAULT '',category VARCHAR(80) DEFAULT '',quantity NUMERIC(12,2) DEFAULT 0,min_quantity NUMERIC(12,2) DEFAULT 0,unit VARCHAR(30) DEFAULT 'adet',location VARCHAR(140) DEFAULT '',supplier VARCHAR(180) DEFAULT '',unit_cost NUMERIC(12,2) DEFAULT 0,note TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await q(`CREATE TABLE IF NOT EXISTS favorites(id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,article_key VARCHAR(180) NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(user_id,article_key))`);
+ await q(`CREATE TABLE IF NOT EXISTS calc_history(id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,tool VARCHAR(120) NOT NULL,input_data JSONB DEFAULT '{}'::jsonb,result TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ const ae=clean(process.env.ADMIN_EMAIL).toLowerCase(),ap=clean(process.env.ADMIN_PASSWORD);if(ae&&ap){const f=await q("SELECT id FROM users WHERE email=$1",[ae]);if(!f.rows.length){const h=await bcrypt.hash(ap,12);await q("INSERT INTO users(name,email,password_hash,role) VALUES($1,$2,$3,'admin')",[process.env.ADMIN_NAME||"Site Yöneticisi",ae,h])}else await q("UPDATE users SET role='admin' WHERE email=$1",[ae])}
 }
 initDb().catch(e=>{console.error("DB init hatası:",e);process.exit(1)});
 
-app.post("/api/auth/register",async(req,res)=>{
- try{
-  const name=clean(req.body.name),email=clean(req.body.email).toLowerCase(),password=String(req.body.password||"");
-  if(name.length<2)return res.status(400).json({error:"Ad soyad gerekli"});
-  if(!emailOk(email))return res.status(400).json({error:"Geçerli e-posta gir"});
-  if(password.length<8)return res.status(400).json({error:"Şifre en az 8 karakter olmalı"});
-  const hash=await bcrypt.hash(password,12);
-  const r=await q("INSERT INTO users(name,email,password_hash) VALUES($1,$2,$3) RETURNING id,name,email,role,is_active,created_at",[name,email,hash]);
-  const u=r.rows[0];setCookie(res,sign(u));res.json({user:u});
- }catch(e){
-  if(e.code==="23505")return res.status(409).json({error:"Bu e-posta zaten kayıtlı"});
-  console.error(e);res.status(500).json({error:"Kayıt oluşturulamadı"});
- }
-});
-app.post("/api/auth/login",async(req,res)=>{
- try{
-  const email=clean(req.body.email).toLowerCase(),password=String(req.body.password||"");
-  const r=await q("SELECT * FROM users WHERE email=$1",[email]);const u=r.rows[0];
-  if(!u||!(await bcrypt.compare(password,u.password_hash)))return res.status(401).json({error:"E-posta veya şifre hatalı"});
-  if(!u.is_active)return res.status(403).json({error:"Hesabınız devre dışı"});
-  setCookie(res,sign(u));res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role,is_active:u.is_active}});
- }catch(e){console.error(e);res.status(500).json({error:"Giriş yapılamadı"})}
-});
+app.post("/api/auth/register",async(req,res)=>{try{const name=clean(req.body.name),email=clean(req.body.email).toLowerCase(),password=String(req.body.password||"");if(name.length<2)return res.status(400).json({error:"Ad soyad gerekli"});if(!emailOk(email))return res.status(400).json({error:"Geçerli e-posta gir"});if(password.length<8)return res.status(400).json({error:"Şifre en az 8 karakter olmalı"});const h=await bcrypt.hash(password,12);const r=await q("INSERT INTO users(name,email,password_hash) VALUES($1,$2,$3) RETURNING id,name,email,role,is_active,created_at",[name,email,h]);const u=r.rows[0];setCookie(res,sign(u));res.json({user:u})}catch(e){if(e.code==="23505")return res.status(409).json({error:"Bu e-posta zaten kayıtlı"});console.error(e);res.status(500).json({error:"Kayıt oluşturulamadı"})}});
+app.post("/api/auth/login",async(req,res)=>{try{const email=clean(req.body.email).toLowerCase(),password=String(req.body.password||"");const u=(await q("SELECT * FROM users WHERE email=$1",[email])).rows[0];if(!u||!(await bcrypt.compare(password,u.password_hash)))return res.status(401).json({error:"E-posta veya şifre hatalı"});if(!u.is_active)return res.status(403).json({error:"Hesabınız devre dışı"});setCookie(res,sign(u));res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role,is_active:u.is_active}})}catch(e){console.error(e);res.status(500).json({error:"Giriş yapılamadı"})}});
 app.post("/api/auth/logout",(req,res)=>{res.clearCookie("dm_token");res.json({ok:true})});
-app.get("/api/auth/me",auth,async(req,res)=>{
- const r=await q("SELECT id,name,email,role,is_active,created_at FROM users WHERE id=$1",[req.user.id]);
- if(!r.rows[0]?.is_active)return res.status(403).json({error:"Hesap devre dışı"});
- res.json({user:r.rows[0]});
-});
+app.get("/api/auth/me",auth,async(req,res)=>{const u=(await q("SELECT id,name,email,role,is_active,created_at FROM users WHERE id=$1",[req.user.id])).rows[0];if(!u?.is_active)return res.status(403).json({error:"Hesap devre dışı"});res.json({user:u})});
 
 app.get("/api/machines",auth,async(req,res)=>res.json((await q("SELECT * FROM machines WHERE user_id=$1 ORDER BY id DESC",[req.user.id])).rows));
-app.post("/api/machines",auth,async(req,res)=>{
- const b=req.body;if(!clean(b.name))return res.status(400).json({error:"Makine adı gerekli"});
- const r=await q(`INSERT INTO machines(user_id,name,model,hours,criticality,serial_no,note)
- VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
- [req.user.id,clean(b.name),clean(b.model),Number(b.hours)||0,clean(b.criticality)||"Normal",clean(b.serial_no),clean(b.note)]);
- res.json(r.rows[0]);
-});
-app.put("/api/machines/:id",auth,async(req,res)=>{
- const b=req.body;const r=await q(`UPDATE machines SET name=$1,model=$2,hours=$3,criticality=$4,serial_no=$5,note=$6 WHERE id=$7 AND user_id=$8 RETURNING *`,
- [clean(b.name),clean(b.model),Number(b.hours)||0,clean(b.criticality)||"Normal",clean(b.serial_no),clean(b.note),req.params.id,req.user.id]);
- if(!r.rows[0])return res.status(404).json({error:"Makine bulunamadı"});res.json(r.rows[0]);
-});
+app.get("/api/machines/:id/detail",auth,async(req,res)=>{const m=(await q("SELECT * FROM machines WHERE id=$1 AND user_id=$2",[req.params.id,req.user.id])).rows[0];if(!m)return res.status(404).json({error:"Makine bulunamadı"});const [ma,f]=await Promise.all([q("SELECT * FROM maintenance WHERE machine_id=$1 AND user_id=$2 ORDER BY due_date DESC,id DESC LIMIT 50",[m.id,req.user.id]),q("SELECT * FROM faults WHERE machine_id=$1 AND user_id=$2 ORDER BY id DESC LIMIT 50",[m.id,req.user.id])]);res.json({machine:m,maintenance:ma.rows,faults:f.rows})});
+app.post("/api/machines",auth,async(req,res)=>{const b=req.body;if(!clean(b.name))return res.status(400).json({error:"Makine adı gerekli"});const r=await q(`INSERT INTO machines(user_id,name,manufacturer,model,category,serial_no,location,status,hours,power_kw,year,criticality,last_maintenance_date,next_maintenance_date,lubricant,bearing_info,belt_info,motor_info,note) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *`,[req.user.id,clean(b.name),clean(b.manufacturer),clean(b.model),clean(b.category),clean(b.serial_no),clean(b.location),clean(b.status)||"Çalışıyor",num(b.hours),num(b.power_kw),b.year?parseInt(b.year,10):null,clean(b.criticality)||"Normal",nil(b.last_maintenance_date),nil(b.next_maintenance_date),clean(b.lubricant),clean(b.bearing_info),clean(b.belt_info),clean(b.motor_info),clean(b.note)]);res.json(r.rows[0])});
+app.put("/api/machines/:id",auth,async(req,res)=>{const b=req.body;const r=await q(`UPDATE machines SET name=$1,manufacturer=$2,model=$3,category=$4,serial_no=$5,location=$6,status=$7,hours=$8,power_kw=$9,year=$10,criticality=$11,last_maintenance_date=$12,next_maintenance_date=$13,lubricant=$14,bearing_info=$15,belt_info=$16,motor_info=$17,note=$18 WHERE id=$19 AND user_id=$20 RETURNING *`,[clean(b.name),clean(b.manufacturer),clean(b.model),clean(b.category),clean(b.serial_no),clean(b.location),clean(b.status)||"Çalışıyor",num(b.hours),num(b.power_kw),b.year?parseInt(b.year,10):null,clean(b.criticality)||"Normal",nil(b.last_maintenance_date),nil(b.next_maintenance_date),clean(b.lubricant),clean(b.bearing_info),clean(b.belt_info),clean(b.motor_info),clean(b.note),req.params.id,req.user.id]);if(!r.rows[0])return res.status(404).json({error:"Makine bulunamadı"});res.json(r.rows[0])});
 app.delete("/api/machines/:id",auth,async(req,res)=>{await q("DELETE FROM machines WHERE id=$1 AND user_id=$2",[req.params.id,req.user.id]);res.json({ok:true})});
 
-app.get("/api/maintenance",auth,async(req,res)=>res.json((await q(`SELECT m.*,x.name machine_name FROM maintenance m LEFT JOIN machines x ON x.id=m.machine_id WHERE m.user_id=$1 ORDER BY m.due_date ASC,m.id DESC`,[req.user.id])).rows));
-app.post("/api/maintenance",auth,async(req,res)=>{
- const b=req.body;if(!b.machine_id||!clean(b.task)||!b.due_date)return res.status(400).json({error:"Makine, görev ve tarih gerekli"});
- const own=await q("SELECT id FROM machines WHERE id=$1 AND user_id=$2",[b.machine_id,req.user.id]);if(!own.rows.length)return res.status(403).json({error:"Makine size ait değil"});
- const r=await q(`INSERT INTO maintenance(user_id,machine_id,task,due_date,priority,note) VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,
- [req.user.id,b.machine_id,clean(b.task),b.due_date,clean(b.priority)||"Normal",clean(b.note)]);res.json(r.rows[0]);
-});
-app.patch("/api/maintenance/:id/status",auth,async(req,res)=>{
- const status=req.body.status==="done"?"done":"open";const r=await q(`UPDATE maintenance SET status=$1,completed_at=CASE WHEN $1='done' THEN NOW() ELSE NULL END WHERE id=$2 AND user_id=$3 RETURNING *`,[status,req.params.id,req.user.id]);
- if(!r.rows[0])return res.status(404).json({error:"Kayıt bulunamadı"});res.json(r.rows[0]);
-});
+app.get("/api/maintenance",auth,async(req,res)=>res.json((await q(`SELECT m.*,x.name machine_name FROM maintenance m LEFT JOIN machines x ON x.id=m.machine_id WHERE m.user_id=$1 ORDER BY CASE WHEN m.status='open' THEN 0 ELSE 1 END,m.due_date ASC,m.id DESC`,[req.user.id])).rows));
+app.post("/api/maintenance",auth,async(req,res)=>{const b=req.body;if(!b.machine_id||!clean(b.task)||!b.due_date)return res.status(400).json({error:"Makine, görev ve tarih gerekli"});const own=await q("SELECT id FROM machines WHERE id=$1 AND user_id=$2",[b.machine_id,req.user.id]);if(!own.rows.length)return res.status(403).json({error:"Makine size ait değil"});const r=await q(`INSERT INTO maintenance(user_id,machine_id,task,due_date,priority,note,maintenance_type,frequency,technician,parts_used,cost,duration_min,meter_hours) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,[req.user.id,b.machine_id,clean(b.task),b.due_date,clean(b.priority)||"Normal",clean(b.note),clean(b.maintenance_type)||"Periyodik",clean(b.frequency),clean(b.technician),clean(b.parts_used),num(b.cost),Math.round(num(b.duration_min)),num(b.meter_hours)]);res.json(r.rows[0])});
+app.patch("/api/maintenance/:id/status",auth,async(req,res)=>{const st=req.body.status==="done"?"done":"open";const r=await q(`UPDATE maintenance SET status=$1,completed_at=CASE WHEN $1='done' THEN NOW() ELSE NULL END WHERE id=$2 AND user_id=$3 RETURNING *`,[st,req.params.id,req.user.id]);if(!r.rows[0])return res.status(404).json({error:"Kayıt bulunamadı"});res.json(r.rows[0])});
 app.delete("/api/maintenance/:id",auth,async(req,res)=>{await q("DELETE FROM maintenance WHERE id=$1 AND user_id=$2",[req.params.id,req.user.id]);res.json({ok:true})});
 
-app.get("/api/faults",auth,async(req,res)=>res.json((await q(`SELECT f.*,x.name machine_name FROM faults f LEFT JOIN machines x ON x.id=f.machine_id WHERE f.user_id=$1 ORDER BY f.id DESC LIMIT 100`,[req.user.id])).rows));
-app.post("/api/faults",auth,async(req,res)=>{
- const b=req.body;const r=await q(`INSERT INTO faults(user_id,machine_id,system,symptom,measurements,note,diagnosis) VALUES($1,$2,$3,$4,$5::jsonb,$6,$7) RETURNING *`,
- [req.user.id,b.machine_id||null,clean(b.system),clean(b.symptom),JSON.stringify(b.measurements||{}),clean(b.note),clean(b.diagnosis)]);res.json(r.rows[0]);
-});
-app.patch("/api/faults/:id/status",auth,async(req,res)=>{const status=req.body.status==="closed"?"closed":"open";const r=await q("UPDATE faults SET status=$1 WHERE id=$2 AND user_id=$3 RETURNING *",[status,req.params.id,req.user.id]);res.json(r.rows[0]||{})});
+app.get("/api/faults",auth,async(req,res)=>res.json((await q(`SELECT f.*,x.name machine_name FROM faults f LEFT JOIN machines x ON x.id=f.machine_id WHERE f.user_id=$1 ORDER BY CASE WHEN f.status='open' THEN 0 ELSE 1 END,f.id DESC LIMIT 200`,[req.user.id])).rows));
+app.post("/api/faults",auth,async(req,res)=>{const b=req.body;if(!clean(b.symptom))return res.status(400).json({error:"Belirti gerekli"});if(b.machine_id){const own=await q("SELECT id FROM machines WHERE id=$1 AND user_id=$2",[b.machine_id,req.user.id]);if(!own.rows.length)return res.status(403).json({error:"Makine size ait değil"})}const r=await q(`INSERT INTO faults(user_id,machine_id,system,symptom,measurements,note,diagnosis,severity,root_cause,action_taken,downtime_min) VALUES($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,$11) RETURNING *`,[req.user.id,b.machine_id||null,clean(b.system),clean(b.symptom),JSON.stringify(b.measurements||{}),clean(b.note),clean(b.diagnosis),clean(b.severity)||"Orta",clean(b.root_cause),clean(b.action_taken),Math.round(num(b.downtime_min))]);res.json(r.rows[0])});
+app.patch("/api/faults/:id/status",auth,async(req,res)=>{const st=req.body.status==="closed"?"closed":"open";const r=await q(`UPDATE faults SET status=$1,root_cause=COALESCE($2,root_cause),action_taken=COALESCE($3,action_taken),downtime_min=COALESCE($4,downtime_min),closed_at=CASE WHEN $1='closed' THEN NOW() ELSE NULL END WHERE id=$5 AND user_id=$6 RETURNING *`,[st,req.body.root_cause??null,req.body.action_taken??null,req.body.downtime_min===undefined?null:Math.round(num(req.body.downtime_min)),req.params.id,req.user.id]);if(!r.rows[0])return res.status(404).json({error:"Arıza bulunamadı"});res.json(r.rows[0])});
+app.delete("/api/faults/:id",auth,async(req,res)=>{await q("DELETE FROM faults WHERE id=$1 AND user_id=$2",[req.params.id,req.user.id]);res.json({ok:true})});
+
+app.get("/api/parts",auth,async(req,res)=>res.json((await q("SELECT * FROM parts WHERE user_id=$1 ORDER BY (quantity<=min_quantity) DESC,name ASC",[req.user.id])).rows));
+app.post("/api/parts",auth,async(req,res)=>{const b=req.body;if(!clean(b.name))return res.status(400).json({error:"Parça adı gerekli"});const r=await q(`INSERT INTO parts(user_id,name,part_code,category,quantity,min_quantity,unit,location,supplier,unit_cost,note) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,[req.user.id,clean(b.name),clean(b.part_code),clean(b.category),num(b.quantity),num(b.min_quantity),clean(b.unit)||"adet",clean(b.location),clean(b.supplier),num(b.unit_cost),clean(b.note)]);res.json(r.rows[0])});
+app.put("/api/parts/:id",auth,async(req,res)=>{const b=req.body;const r=await q(`UPDATE parts SET name=$1,part_code=$2,category=$3,quantity=$4,min_quantity=$5,unit=$6,location=$7,supplier=$8,unit_cost=$9,note=$10 WHERE id=$11 AND user_id=$12 RETURNING *`,[clean(b.name),clean(b.part_code),clean(b.category),num(b.quantity),num(b.min_quantity),clean(b.unit)||"adet",clean(b.location),clean(b.supplier),num(b.unit_cost),clean(b.note),req.params.id,req.user.id]);if(!r.rows[0])return res.status(404).json({error:"Parça bulunamadı"});res.json(r.rows[0])});
+app.delete("/api/parts/:id",auth,async(req,res)=>{await q("DELETE FROM parts WHERE id=$1 AND user_id=$2",[req.params.id,req.user.id]);res.json({ok:true})});
 
 app.get("/api/favorites",auth,async(req,res)=>res.json((await q("SELECT article_key FROM favorites WHERE user_id=$1 ORDER BY id DESC",[req.user.id])).rows.map(x=>x.article_key)));
-app.post("/api/favorites/toggle",auth,async(req,res)=>{
- const key=clean(req.body.article_key);if(!key)return res.status(400).json({error:"Makale anahtarı gerekli"});
- const f=await q("SELECT id FROM favorites WHERE user_id=$1 AND article_key=$2",[req.user.id,key]);
- if(f.rows.length){await q("DELETE FROM favorites WHERE id=$1",[f.rows[0].id]);return res.json({favorite:false})}
- await q("INSERT INTO favorites(user_id,article_key) VALUES($1,$2)",[req.user.id,key]);res.json({favorite:true})
-});
-app.get("/api/calc-history",auth,async(req,res)=>res.json((await q("SELECT * FROM calc_history WHERE user_id=$1 ORDER BY id DESC LIMIT 30",[req.user.id])).rows));
-app.post("/api/calc-history",auth,async(req,res)=>{
- const b=req.body;await q("INSERT INTO calc_history(user_id,tool,input_data,result) VALUES($1,$2,$3::jsonb,$4)",[req.user.id,clean(b.tool),JSON.stringify(b.input_data||{}),clean(b.result)]);res.json({ok:true})
-});
+app.post("/api/favorites/toggle",auth,async(req,res)=>{const key=clean(req.body.article_key);if(!key)return res.status(400).json({error:"Makale anahtarı gerekli"});const f=await q("SELECT id FROM favorites WHERE user_id=$1 AND article_key=$2",[req.user.id,key]);if(f.rows.length){await q("DELETE FROM favorites WHERE id=$1",[f.rows[0].id]);return res.json({favorite:false})}await q("INSERT INTO favorites(user_id,article_key) VALUES($1,$2)",[req.user.id,key]);res.json({favorite:true})});
+app.get("/api/calc-history",auth,async(req,res)=>res.json((await q("SELECT * FROM calc_history WHERE user_id=$1 ORDER BY id DESC LIMIT 40",[req.user.id])).rows));
+app.post("/api/calc-history",auth,async(req,res)=>{const b=req.body;await q("INSERT INTO calc_history(user_id,tool,input_data,result) VALUES($1,$2,$3::jsonb,$4)",[req.user.id,clean(b.tool),JSON.stringify(b.input_data||{}),clean(b.result)]);res.json({ok:true})});
 
-app.get("/api/dashboard",auth,async(req,res)=>{
- const [m,ma,f]=await Promise.all([
-  q("SELECT COUNT(*)::int count FROM machines WHERE user_id=$1",[req.user.id]),
-  q("SELECT COUNT(*)::int count FROM maintenance WHERE user_id=$1 AND status='open'",[req.user.id]),
-  q("SELECT COUNT(*)::int count FROM faults WHERE user_id=$1 AND status='open'",[req.user.id])
- ]);res.json({machines:m.rows[0].count,maintenance:ma.rows[0].count,faults:f.rows[0].count})
-});
+app.get("/api/dashboard",auth,async(req,res)=>{const u=req.user.id;const [m,ma,f,od,d30,done,crit,low,cost,rm,rf]=await Promise.all([q("SELECT COUNT(*)::int c FROM machines WHERE user_id=$1",[u]),q("SELECT COUNT(*)::int c FROM maintenance WHERE user_id=$1 AND status='open'",[u]),q("SELECT COUNT(*)::int c FROM faults WHERE user_id=$1 AND status='open'",[u]),q("SELECT COUNT(*)::int c FROM maintenance WHERE user_id=$1 AND status='open' AND due_date<CURRENT_DATE",[u]),q("SELECT COUNT(*)::int c FROM maintenance WHERE user_id=$1 AND status='open' AND due_date BETWEEN CURRENT_DATE AND CURRENT_DATE+30",[u]),q("SELECT COUNT(*)::int c FROM maintenance WHERE user_id=$1 AND status='done' AND completed_at>=date_trunc('month',NOW())",[u]),q("SELECT COUNT(*)::int c FROM machines WHERE user_id=$1 AND (criticality='Kritik' OR status IN ('Arızalı','Bakımda'))",[u]),q("SELECT COUNT(*)::int c FROM parts WHERE user_id=$1 AND quantity<=min_quantity",[u]),q("SELECT COALESCE(SUM(cost),0)::numeric t FROM maintenance WHERE user_id=$1 AND completed_at>=date_trunc('month',NOW())",[u]),q(`SELECT ma.id,ma.task,ma.due_date,ma.status,ma.priority,x.name machine_name FROM maintenance ma LEFT JOIN machines x ON x.id=ma.machine_id WHERE ma.user_id=$1 ORDER BY ma.created_at DESC LIMIT 6`,[u]),q(`SELECT f.id,f.symptom,f.status,f.severity,f.created_at,x.name machine_name FROM faults f LEFT JOIN machines x ON x.id=f.machine_id WHERE f.user_id=$1 ORDER BY f.created_at DESC LIMIT 6`,[u])]);res.json({machines:m.rows[0].c,maintenance:ma.rows[0].c,faults:f.rows[0].c,overdue:od.rows[0].c,due30:d30.rows[0].c,doneMonth:done.rows[0].c,critical:crit.rows[0].c,lowStock:low.rows[0].c,costMonth:Number(cost.rows[0].t||0),recentMaintenance:rm.rows,recentFaults:rf.rows})});
 
-app.get("/api/admin/summary",auth,admin,async(req,res)=>{
- const r=await q(`SELECT
- (SELECT COUNT(*) FROM users)::int users,
- (SELECT COUNT(*) FROM machines)::int machines,
- (SELECT COUNT(*) FROM maintenance)::int maintenance,
- (SELECT COUNT(*) FROM faults)::int faults`);
- res.json(r.rows[0]);
-});
-app.get("/api/admin/users",auth,admin,async(req,res)=>{
- const r=await q(`SELECT u.id,u.name,u.email,u.role,u.is_active,u.created_at,
- (SELECT COUNT(*) FROM machines m WHERE m.user_id=u.id)::int machines,
- (SELECT COUNT(*) FROM maintenance ma WHERE ma.user_id=u.id)::int maintenance,
- (SELECT COUNT(*) FROM faults f WHERE f.user_id=u.id)::int faults
- FROM users u ORDER BY u.id DESC LIMIT 500`);
- res.json(r.rows);
-});
-app.patch("/api/admin/users/:id/active",auth,admin,async(req,res)=>{
- if(Number(req.params.id)===Number(req.user.id))return res.status(400).json({error:"Kendi admin hesabınızı devre dışı bırakamazsınız"});
- const active=!!req.body.is_active;const r=await q("UPDATE users SET is_active=$1 WHERE id=$2 RETURNING id,name,email,role,is_active",[active,req.params.id]);res.json(r.rows[0]||{});
-});
-app.patch("/api/admin/users/:id/role",auth,admin,async(req,res)=>{
- const role=req.body.role==="admin"?"admin":"user";const r=await q("UPDATE users SET role=$1 WHERE id=$2 RETURNING id,name,email,role,is_active",[role,req.params.id]);res.json(r.rows[0]||{});
-});
+app.get("/api/admin/summary",auth,admin,async(req,res)=>{const r=await q(`SELECT (SELECT COUNT(*) FROM users)::int users,(SELECT COUNT(*) FROM users WHERE is_active)::int active_users,(SELECT COUNT(*) FROM users WHERE NOT is_active)::int inactive_users,(SELECT COUNT(*) FROM machines)::int machines,(SELECT COUNT(*) FROM maintenance)::int maintenance,(SELECT COUNT(*) FROM faults)::int faults,(SELECT COUNT(*) FROM parts)::int parts`);res.json(r.rows[0])});
+app.get("/api/admin/users",auth,admin,async(req,res)=>{const term=`%${clean(req.query.search)}%`;const r=await q(`SELECT u.id,u.name,u.email,u.role,u.is_active,u.created_at,(SELECT COUNT(*) FROM machines m WHERE m.user_id=u.id)::int machines,(SELECT COUNT(*) FROM maintenance ma WHERE ma.user_id=u.id)::int maintenance,(SELECT COUNT(*) FROM faults f WHERE f.user_id=u.id)::int faults,(SELECT COUNT(*) FROM parts p WHERE p.user_id=u.id)::int parts FROM users u WHERE ($1='%%' OR u.name ILIKE $1 OR u.email ILIKE $1) ORDER BY u.id DESC LIMIT 500`,[term]);res.json(r.rows)});
+app.get("/api/admin/users/:id",auth,admin,async(req,res)=>{const u=(await q("SELECT id,name,email,role,is_active,created_at FROM users WHERE id=$1",[req.params.id])).rows[0];if(!u)return res.status(404).json({error:"Kullanıcı bulunamadı"});const [m,ma,f,p]=await Promise.all([q("SELECT * FROM machines WHERE user_id=$1 ORDER BY id DESC LIMIT 50",[u.id]),q("SELECT ma.*,x.name machine_name FROM maintenance ma LEFT JOIN machines x ON x.id=ma.machine_id WHERE ma.user_id=$1 ORDER BY ma.id DESC LIMIT 50",[u.id]),q("SELECT f.*,x.name machine_name FROM faults f LEFT JOIN machines x ON x.id=f.machine_id WHERE f.user_id=$1 ORDER BY f.id DESC LIMIT 50",[u.id]),q("SELECT * FROM parts WHERE user_id=$1 ORDER BY name LIMIT 50",[u.id])]);res.json({user:u,machines:m.rows,maintenance:ma.rows,faults:f.rows,parts:p.rows})});
+app.patch("/api/admin/users/:id/active",auth,admin,async(req,res)=>{if(Number(req.params.id)===Number(req.user.id))return res.status(400).json({error:"Kendi admin hesabınızı devre dışı bırakamazsınız"});const r=await q("UPDATE users SET is_active=$1 WHERE id=$2 RETURNING id,name,email,role,is_active",[!!req.body.is_active,req.params.id]);res.json(r.rows[0]||{})});
+app.patch("/api/admin/users/:id/role",auth,admin,async(req,res)=>{if(Number(req.params.id)===Number(req.user.id)&&req.body.role!=="admin")return res.status(400).json({error:"Kendi admin rolünüzü kaldıramazsınız"});const role=req.body.role==="admin"?"admin":"user";const r=await q("UPDATE users SET role=$1 WHERE id=$2 RETURNING id,name,email,role,is_active",[role,req.params.id]);res.json(r.rows[0]||{})});
+app.delete("/api/admin/users/:id",auth,admin,async(req,res)=>{if(Number(req.params.id)===Number(req.user.id))return res.status(400).json({error:"Kendi admin hesabınızı silemezsiniz"});await q("DELETE FROM users WHERE id=$1",[req.params.id]);res.json({ok:true})});
 
-app.get("/api/health",(req,res)=>res.json({ok:true,version:"12.0.0"}));
-app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
-app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:"Sunucu hatası"})});
-app.listen(PORT,()=>console.log(`Dijital Makinacı V12 http://localhost:${PORT}`));
+app.get("/api/health",(req,res)=>res.json({ok:true,version:"13.0.0"}));app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:"Sunucu hatası"})});app.listen(PORT,()=>console.log(`Dijital Makinacı V13 http://localhost:${PORT}`));
