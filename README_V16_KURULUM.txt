@@ -49,3 +49,12 @@ Mevcut V15 tabloları silinmez.
 
 NOT
 Production deploy öncesinde mevcut PostgreSQL veritabanının Render yedeğini almak iyi uygulamadır.
+
+
+V16.1 PWA GÜNCELLEMESİ
+- manifest.webmanifest ve service-worker.js eklendi.
+- Android ana ekrana kurulum artık standalone uygulama olarak desteklenir.
+- 192/512 PWA ikonları ve Apple Touch ikon eklendi.
+- Production HTTP istekleri HTTPS'e 308 ile yönlendirilir.
+- Eski ana ekran kısayolunu silip Chrome'dan siteyi yeniden açarak "Ana ekrana ekle / Uygulamayı yükle" seçeneğini kullanın.
+- SSL sertifikası geçerli olmak zorundadır; sertifika hatası varsa PWA kurulumu/açılışı güvenilir çalışmaz.

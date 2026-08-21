@@ -18,9 +18,11 @@ const pool=new Pool({connectionString:DATABASE_URL,ssl:process.env.NODE_ENV==='p
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024,files:1}});
 
 app.set('trust proxy',1);
+if(process.env.NODE_ENV==='production'){app.use((req,res,next)=>{const proto=String(req.headers['x-forwarded-proto']||'').split(',')[0].trim();if(req.secure||proto==='https')return next();const host=req.get('host');if(!host)return next();return res.redirect(308,`https://${host}${req.originalUrl}`)});}
 app.use(helmet({contentSecurityPolicy:false}));
 app.use(express.json({limit:'700kb'}));
 app.use(cookieParser());
+app.use((req,res,next)=>{if(req.path==='/manifest.webmanifest')res.type('application/manifest+json');if(req.path==='/service-worker.js')res.setHeader('Service-Worker-Allowed','/');next()});
 app.use(express.static(path.join(__dirname,'public'),{maxAge:0,etag:true,setHeaders:res=>res.setHeader('Cache-Control','no-store, max-age=0')}));
 app.use('/api/auth',rateLimit({windowMs:15*60*1000,max:60,standardHeaders:true,legacyHeaders:false}));
 
@@ -230,7 +232,7 @@ app.patch('/api/admin/settings',auth,siteAdmin,async(req,res,next)=>{try{const a
 app.get('/api/admin/support',auth,siteAdmin,async(req,res,next)=>{try{res.json((await q(`SELECT t.*,u.name user_name,u.email user_email,c.name company_name FROM support_tickets t LEFT JOIN users u ON u.id=t.user_id LEFT JOIN companies c ON c.id=t.company_id ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,t.id DESC LIMIT 400`)).rows)}catch(e){next(e)}});
 app.patch('/api/admin/support/:id',auth,siteAdmin,async(req,res,next)=>{try{const status=['open','in_progress','closed'].includes(req.body.status)?req.body.status:'open',note=clean(req.body.admin_note);const r=(await q('UPDATE support_tickets SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *',[status,note,req.params.id])).rows[0];if(!r)return res.status(404).json({error:'Destek kaydı bulunamadı'});await adminAudit(req,'support_updated','support',r.id,{status});res.json(r)}catch(e){next(e)}});
 
-app.get('/api/health',(req,res)=>res.json({ok:true,version:'16.0.0',product:'Dijital Makinacı V16 Admin Center'}));
+app.get('/api/health',(req,res)=>res.json({ok:true,version:'16.1.0',product:'Dijital Makinacı V16 Admin Center'}));
 app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 app.get('/admin/',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
