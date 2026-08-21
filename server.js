@@ -24,7 +24,24 @@ app.use(helmet({contentSecurityPolicy:false}));
 app.use(express.json({limit:'700kb'}));
 app.use(cookieParser());
 app.use((req,res,next)=>{if(req.path==='/manifest.webmanifest')res.type('application/manifest+json');if(req.path==='/service-worker.js')res.setHeader('Service-Worker-Allowed','/');next()});
-app.use(express.static(path.join(__dirname,'public'),{maxAge:0,etag:true,setHeaders:res=>res.setHeader('Cache-Control','no-store, max-age=0')}));
+// V16.2.1 ROOT-SAFE UI: Frontend files are served directly from repo root.
+// This avoids mobile GitHub uploads accidentally placing the new UI outside /public.
+function rootUiFile(res,file,type){
+  res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
+  res.setHeader('Pragma','no-cache');
+  res.setHeader('Expires','0');
+  if(type)res.type(type);
+  return res.sendFile(path.join(__dirname,file));
+}
+app.get(['/', '/index.html'],(req,res)=>rootUiFile(res,'v1621-index.html','html'));
+app.get('/v1621-app.js',(req,res)=>rootUiFile(res,'v1621-app.js','application/javascript'));
+app.get('/v1621-style.css',(req,res)=>rootUiFile(res,'v1621-style.css','text/css'));
+app.get('/forgot-password.html',(req,res)=>rootUiFile(res,'v1621-forgot-password.html','html'));
+app.get('/reset-password.html',(req,res)=>rootUiFile(res,'v1621-reset-password.html','html'));
+app.get('/manifest.webmanifest',(req,res)=>rootUiFile(res,'v1621-manifest.webmanifest','application/manifest+json'));
+app.get('/service-worker.js',(req,res)=>{res.setHeader('Service-Worker-Allowed','/');return rootUiFile(res,'v1621-service-worker.js','application/javascript')});
+
+app.use(express.static(path.join(__dirname,'public'),{index:false,maxAge:0,etag:true,setHeaders:res=>res.setHeader('Cache-Control','no-store, max-age=0')}));
 app.use('/api/auth',rateLimit({windowMs:15*60*1000,max:60,standardHeaders:true,legacyHeaders:false}));
 
 const clean=s=>String(s??'').trim();
@@ -280,7 +297,7 @@ app.patch('/api/admin/settings',auth,siteAdmin,async(req,res,next)=>{try{const a
 app.get('/api/admin/support',auth,siteAdmin,async(req,res,next)=>{try{res.json((await q(`SELECT t.*,u.name user_name,u.email user_email,c.name company_name FROM support_tickets t LEFT JOIN users u ON u.id=t.user_id LEFT JOIN companies c ON c.id=t.company_id ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,t.id DESC LIMIT 400`)).rows)}catch(e){next(e)}});
 app.patch('/api/admin/support/:id',auth,siteAdmin,async(req,res,next)=>{try{const status=['open','in_progress','closed'].includes(req.body.status)?req.body.status:'open',note=clean(req.body.admin_note);const r=(await q('UPDATE support_tickets SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *',[status,note,req.params.id])).rows[0];if(!r)return res.status(404).json({error:'Destek kaydı bulunamadı'});await adminAudit(req,'support_updated','support',r.id,{status});res.json(r)}catch(e){next(e)}});
 
-app.get('/api/health',(req,res)=>res.json({ok:true,version:'16.2.0',product:'Dijital Makinacı V16.2 Pro CMMS'}));
+app.get('/api/health',(req,res)=>res.json({ok:true,version:'16.2.1',product:'Dijital Makinacı V16.2.1 Pro CMMS'}));
 app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 app.get('/admin/',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
