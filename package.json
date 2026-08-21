@@ -1,9 +1,13 @@
 {
-  "name": "dijitalmakinaci-v16-admin-center",
-  "version": "16.0.0",
+  "name": "dijitalmakinaci-v16-2-pro-cmms",
+  "version": "16.2.0",
   "private": true,
-  "scripts": {"start": "node server.js"},
-  "engines": {"node": ">=20"},
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",

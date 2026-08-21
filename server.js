@@ -5,6 +5,7 @@ const helmet=require('helmet');
 const rateLimit=require('express-rate-limit');
 const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
+const crypto=require('crypto');
 const multer=require('multer');
 const QRCode=require('qrcode');
 const {Pool}=require('pg');
@@ -53,6 +54,16 @@ async function getSystemSettings(force=false){if(!force&&Date.now()-settingsCach
 async function adminAudit(req,action,targetType,targetId=null,details={}){try{await q('INSERT INTO admin_action_log(admin_user_id,action,target_type,target_id,details,ip,user_agent) VALUES($1,$2,$3,$4,$5::jsonb,$6,$7)',[req.user?.id||null,action,targetType,targetId||null,JSON.stringify(details||{}),String(req.ip||'').slice(0,80),String(req.get?.('user-agent')||'').slice(0,500)])}catch(e){console.warn('admin audit:',e.message)}}
 async function loginEvent(req,email,success,userId=null,reason=''){try{await q('INSERT INTO login_events(user_id,email,success,reason,ip,user_agent) VALUES($1,$2,$3,$4,$5,$6)',[userId||null,clean(email).toLowerCase(),!!success,clean(reason).slice(0,160),String(req.ip||'').slice(0,80),String(req.get('user-agent')||'').slice(0,500)])}catch(e){console.warn('login event:',e.message)}}
 
+function resetTokenHash(token){return crypto.createHash('sha256').update(String(token||'')).digest('hex')}
+async function sendPasswordResetMail(to,name,resetUrl){
+ const key=clean(process.env.RESEND_API_KEY),from=clean(process.env.PASSWORD_RESET_FROM);
+ if(!key||!from)return false;
+ const body={from,to:[to],subject:'Dijital Makinacı • Şifre yenileme',html:`<div style="font-family:Arial,sans-serif;background:#071015;color:#eef5f3;padding:28px"><div style="max-width:560px;margin:auto;background:#0b171d;border:1px solid #20343d;border-radius:16px;padding:28px"><h2 style="margin:0 0 14px;color:#65ef9b">Şifreni yenile</h2><p>Merhaba ${clean(name)||'kullanıcı'}, Dijital Makinacı hesabın için şifre yenileme isteği aldık.</p><p><a href="${resetUrl}" style="display:inline-block;background:#65ef9b;color:#06110a;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:9px">Yeni şifre oluştur</a></p><p style="color:#91a4ab;font-size:13px">Bu bağlantı 30 dakika geçerlidir ve yalnızca bir kez kullanılabilir. Bu isteği sen yapmadıysan e-postayı yok sayabilirsin.</p></div></div>`};
+ const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ if(!r.ok){const t=await r.text().catch(()=>'');throw Error(`E-posta servisi ${r.status}: ${t.slice(0,180)}`)}
+ return true;
+}
+
 async function initDb(){
  await q(`CREATE TABLE IF NOT EXISTS users(id BIGSERIAL PRIMARY KEY,name VARCHAR(120) NOT NULL,email VARCHAR(200) UNIQUE NOT NULL,password_hash TEXT NOT NULL,role VARCHAR(20) NOT NULL DEFAULT 'user',is_active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS companies(id BIGSERIAL PRIMARY KEY,name VARCHAR(180) NOT NULL,code VARCHAR(80) UNIQUE NOT NULL,owner_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
@@ -83,6 +94,10 @@ async function initDb(){
  await q(`CREATE TABLE IF NOT EXISTS admin_action_log(id BIGSERIAL PRIMARY KEY,admin_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,action VARCHAR(100) NOT NULL,target_type VARCHAR(100) NOT NULL,target_id BIGINT,details JSONB NOT NULL DEFAULT '{}'::jsonb,ip VARCHAR(80) DEFAULT '',user_agent TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS login_events(id BIGSERIAL PRIMARY KEY,user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,email VARCHAR(200) DEFAULT '',success BOOLEAN NOT NULL DEFAULT FALSE,reason VARCHAR(160) DEFAULT '',ip VARCHAR(80) DEFAULT '',user_agent TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS support_tickets(id BIGSERIAL PRIMARY KEY,user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,company_id BIGINT REFERENCES companies(id) ON DELETE SET NULL,subject VARCHAR(220) NOT NULL,message TEXT NOT NULL,status VARCHAR(30) NOT NULL DEFAULT 'open',priority VARCHAR(30) NOT NULL DEFAULT 'Normal',admin_note TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await q(`CREATE TABLE IF NOT EXISTS password_reset_tokens(id BIGSERIAL PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,token_hash VARCHAR(64) UNIQUE NOT NULL,expires_at TIMESTAMPTZ NOT NULL,used_at TIMESTAMPTZ,requested_ip VARCHAR(80) DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await q(`CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset_tokens(token_hash,expires_at)`);
+ await q(`CREATE TABLE IF NOT EXISTS part_movements(id BIGSERIAL PRIMARY KEY,company_id BIGINT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,part_id BIGINT NOT NULL REFERENCES parts(id) ON DELETE CASCADE,user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,movement_type VARCHAR(12) NOT NULL,quantity NUMERIC(12,2) NOT NULL,previous_qty NUMERIC(12,2) NOT NULL,new_qty NUMERIC(12,2) NOT NULL,note VARCHAR(240) DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await q(`CREATE INDEX IF NOT EXISTS idx_part_movements_part ON part_movements(company_id,part_id,created_at DESC)`);
  const defaultSettings={site_name:'Dijital Makinacı',registrations_enabled:true,maintenance_mode:false,support_email:'',allow_file_uploads:true};
  for(const [k,v] of Object.entries(defaultSettings))await q('INSERT INTO system_settings(key,value) VALUES($1,$2::jsonb) ON CONFLICT(key) DO NOTHING',[k,JSON.stringify(v)]);
  settingsCache.at=0;
@@ -106,6 +121,37 @@ app.post('/api/auth/register',async(req,res,next)=>{try{const st=await getSystem
 app.post('/api/auth/login',async(req,res,next)=>{try{const email=clean(req.body.email).toLowerCase(),password=String(req.body.password||'');const u=(await q('SELECT * FROM users WHERE email=$1',[email])).rows[0];if(!u||!(await bcrypt.compare(password,u.password_hash))){await loginEvent(req,email,false,u?.id||null,'invalid_credentials');return res.status(401).json({error:'E-posta veya şifre hatalı'})}if(!u.is_active){await loginEvent(req,email,false,u.id,'inactive_account');return res.status(403).json({error:'Hesabınız devre dışı'})}const st=await getSystemSettings();if(st.maintenance_mode===true&&!u.platform_admin){await loginEvent(req,email,false,u.id,'maintenance_mode');return res.status(503).json({error:'Sistem bakım modunda. Platform yöneticileri giriş yapabilir.'})}await ensureCompanyForUser(u.id);await q('UPDATE users SET last_login_at=NOW() WHERE id=$1',[u.id]);await loginEvent(req,email,true,u.id,'login');setCookie(res,sign(u));res.json({user:{id:u.id,name:u.name,email:u.email,role:u.role,is_active:u.is_active,platform_admin:!!u.platform_admin}})}catch(e){next(e)}});
 app.post('/api/auth/logout',(req,res)=>{res.clearCookie('dm_token');res.json({ok:true})});
 app.get('/api/auth/me',auth,companyCtx,async(req,res)=>{const u=(await q('SELECT id,name,email,role,is_active,platform_admin,created_at,last_login_at,active_company_id FROM users WHERE id=$1',[req.user.id])).rows[0];if(!u?.is_active)return res.status(403).json({error:'Hesap devre dışı'});res.json({user:{...u,company:req.company,company_role:req.company.role}})});
+app.post('/api/auth/forgot-password',async(req,res,next)=>{try{
+ const email=clean(req.body.email).toLowerCase();
+ const configured=!!(clean(process.env.RESEND_API_KEY)&&clean(process.env.PASSWORD_RESET_FROM));
+ if(emailOk(email)){
+  const u=(await q('SELECT id,name,email,is_active FROM users WHERE email=$1',[email])).rows[0];
+  if(u?.is_active&&configured){
+   const raw=crypto.randomBytes(32).toString('hex'),hash=resetTokenHash(raw);
+   await q('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[u.id]);
+   await q("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at,requested_ip) VALUES($1,$2,NOW()+INTERVAL '30 minutes',$3)",[u.id,hash,String(req.ip||'').slice(0,80)]);
+   const base=(clean(process.env.PUBLIC_BASE_URL)||`${req.protocol}://${req.get('host')}`).replace(/\/$/,'');
+   try{await sendPasswordResetMail(u.email,u.name,`${base}/reset-password.html?token=${encodeURIComponent(raw)}`)}catch(err){console.error('Şifre yenileme e-postası:',err.message)}
+  }
+ }
+ res.json({ok:true,email_enabled:configured,message:configured?'E-posta sistemde kayıtlıysa 30 dakika geçerli şifre yenileme bağlantısı gönderildi.':'Şifre yenileme sayfası hazır; e-posta ile sıfırlama için yönetici RESEND_API_KEY ve PASSWORD_RESET_FROM ayarlarını etkinleştirmeli.'});
+}catch(e){next(e)}});
+app.get('/api/auth/reset-password/validate',async(req,res,next)=>{try{const hash=resetTokenHash(req.query.token);const r=(await q("SELECT id FROM password_reset_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at>NOW()",[hash])).rows[0];res.json({valid:!!r})}catch(e){next(e)}});
+app.post('/api/auth/reset-password',async(req,res,next)=>{try{
+ const token=String(req.body.token||''),password=String(req.body.password||'');
+ if(token.length<32)return res.status(400).json({error:'Şifre yenileme bağlantısı geçersiz'});
+ if(password.length<8||password.length>128)return res.status(400).json({error:'Yeni şifre 8–128 karakter olmalı'});
+ const hash=resetTokenHash(token),c=await pool.connect();
+ try{await c.query('BEGIN');const r=(await c.query("SELECT pr.id,pr.user_id,u.email FROM password_reset_tokens pr JOIN users u ON u.id=pr.user_id WHERE pr.token_hash=$1 AND pr.used_at IS NULL AND pr.expires_at>NOW() FOR UPDATE",[hash])).rows[0];if(!r){await c.query('ROLLBACK');return res.status(400).json({error:'Bu bağlantının süresi dolmuş veya daha önce kullanılmış'})}const ph=await bcrypt.hash(password,12);await c.query('UPDATE users SET password_hash=$1 WHERE id=$2',[ph,r.user_id]);await c.query('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[r.user_id]);await c.query('COMMIT');res.clearCookie('dm_token');await loginEvent(req,r.email,true,r.user_id,'password_reset');res.json({ok:true})}catch(e){await c.query('ROLLBACK').catch(()=>{});throw e}finally{c.release()}
+}catch(e){next(e)}});
+app.post('/api/account/password',auth,async(req,res,next)=>{try{
+ const current=String(req.body.current_password||''),nextPassword=String(req.body.new_password||'');
+ if(nextPassword.length<8||nextPassword.length>128)return res.status(400).json({error:'Yeni şifre 8–128 karakter olmalı'});
+ if(current===nextPassword)return res.status(400).json({error:'Yeni şifre mevcut şifreden farklı olmalı'});
+ const u=(await q('SELECT id,email,password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];
+ if(!u||!(await bcrypt.compare(current,u.password_hash)))return res.status(401).json({error:'Mevcut şifre yanlış'});
+ const ph=await bcrypt.hash(nextPassword,12);await q('UPDATE users SET password_hash=$1 WHERE id=$2',[ph,u.id]);await q('UPDATE password_reset_tokens SET used_at=NOW() WHERE user_id=$1 AND used_at IS NULL',[u.id]);await loginEvent(req,u.email,true,u.id,'password_changed');res.json({ok:true,message:'Şifren başarıyla yenilendi'});
+}catch(e){next(e)}});
 app.get('/api/public/settings',async(req,res,next)=>{try{const s=await getSystemSettings();res.json({site_name:s.site_name||'Dijital Makinacı',registrations_enabled:s.registrations_enabled!==false,maintenance_mode:s.maintenance_mode===true,support_email:s.support_email||''})}catch(e){next(e)}});
 app.get('/api/announcements',auth,async(req,res,next)=>{try{res.json((await q(`SELECT id,title,body,level,publish_at,expires_at FROM announcements WHERE is_active=true AND publish_at<=NOW() AND (expires_at IS NULL OR expires_at>NOW()) ORDER BY id DESC LIMIT 20`)).rows)}catch(e){next(e)}});
 app.get('/api/content/articles',auth,async(req,res,next)=>{try{res.json((await q(`SELECT id,slug,title,category,summary,body,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY category,title`)).rows)}catch(e){next(e)}});
@@ -143,6 +189,8 @@ app.delete('/api/faults/:id',auth,companyCtx,permit('owner','manager'),async(req
 
 // PARTS
 app.get('/api/parts',auth,companyCtx,async(req,res)=>res.json((await q('SELECT * FROM parts WHERE company_id=$1 ORDER BY name',[req.company.id])).rows));
+app.get('/api/parts/:id/movements',auth,companyCtx,async(req,res,next)=>{try{res.json((await q(`SELECT pm.*,u.name user_name FROM part_movements pm LEFT JOIN users u ON u.id=pm.user_id WHERE pm.company_id=$1 AND pm.part_id=$2 ORDER BY pm.id DESC LIMIT 80`,[req.company.id,req.params.id])).rows)}catch(e){next(e)}});
+app.post('/api/parts/:id/movement',auth,companyCtx,permit('owner','manager','technician'),async(req,res,next)=>{const type=['in','out'].includes(req.body.type)?req.body.type:null,qty=num(req.body.quantity);if(!type)return res.status(400).json({error:'Stok hareket tipi geçersiz'});if(!(qty>0))return res.status(400).json({error:'Miktar 0’dan büyük olmalı'});const c=await pool.connect();try{await c.query('BEGIN');const part=(await c.query('SELECT * FROM parts WHERE id=$1 AND company_id=$2 FOR UPDATE',[req.params.id,req.company.id])).rows[0];if(!part){await c.query('ROLLBACK');return res.status(404).json({error:'Parça bulunamadı'})}const prev=num(part.quantity),nextQty=type==='in'?prev+qty:prev-qty;if(nextQty<0){await c.query('ROLLBACK');return res.status(400).json({error:`Stok yetersiz. Mevcut: ${prev} ${part.unit}`})}const updated=(await c.query('UPDATE parts SET quantity=$1 WHERE id=$2 RETURNING *',[nextQty,part.id])).rows[0];const movement=(await c.query(`INSERT INTO part_movements(company_id,part_id,user_id,movement_type,quantity,previous_qty,new_qty,note) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,[req.company.id,part.id,req.user.id,type,qty,prev,nextQty,clean(req.body.note).slice(0,240)])).rows[0];await c.query('COMMIT');await audit(req,type==='in'?'stock_in':'stock_out','part',part.id,{quantity:qty,previous_qty:prev,new_qty:nextQty});res.json({part:updated,movement})}catch(e){await c.query('ROLLBACK').catch(()=>{});next(e)}finally{c.release()}});
 app.post('/api/parts',auth,companyCtx,permit('owner','manager','technician'),async(req,res)=>{const b=req.body;if(!clean(b.name))return res.status(400).json({error:'Parça adı gerekli'});const r=await q(`INSERT INTO parts(user_id,company_id,name,part_code,category,quantity,min_quantity,unit,location,supplier,unit_cost,note) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,[req.user.id,req.company.id,clean(b.name),clean(b.part_code),clean(b.category),num(b.quantity),num(b.min_quantity),clean(b.unit)||'adet',clean(b.location),clean(b.supplier),num(b.unit_cost),clean(b.note)]);await audit(req,'create','part',r.rows[0].id,{name:r.rows[0].name});res.json(r.rows[0])});
 app.put('/api/parts/:id',auth,companyCtx,permit('owner','manager','technician'),async(req,res)=>{const b=req.body;const r=await q(`UPDATE parts SET name=$1,part_code=$2,category=$3,quantity=$4,min_quantity=$5,unit=$6,location=$7,supplier=$8,unit_cost=$9,note=$10 WHERE id=$11 AND company_id=$12 RETURNING *`,[clean(b.name),clean(b.part_code),clean(b.category),num(b.quantity),num(b.min_quantity),clean(b.unit)||'adet',clean(b.location),clean(b.supplier),num(b.unit_cost),clean(b.note),req.params.id,req.company.id]);if(!r.rows[0])return res.status(404).json({error:'Parça bulunamadı'});await audit(req,'update','part',req.params.id,{name:r.rows[0].name});res.json(r.rows[0])});
 app.delete('/api/parts/:id',auth,companyCtx,permit('owner','manager'),async(req,res)=>{await q('DELETE FROM parts WHERE id=$1 AND company_id=$2',[req.params.id,req.company.id]);await audit(req,'delete','part',req.params.id,{});res.json({ok:true})});
@@ -232,10 +280,10 @@ app.patch('/api/admin/settings',auth,siteAdmin,async(req,res,next)=>{try{const a
 app.get('/api/admin/support',auth,siteAdmin,async(req,res,next)=>{try{res.json((await q(`SELECT t.*,u.name user_name,u.email user_email,c.name company_name FROM support_tickets t LEFT JOIN users u ON u.id=t.user_id LEFT JOIN companies c ON c.id=t.company_id ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,t.id DESC LIMIT 400`)).rows)}catch(e){next(e)}});
 app.patch('/api/admin/support/:id',auth,siteAdmin,async(req,res,next)=>{try{const status=['open','in_progress','closed'].includes(req.body.status)?req.body.status:'open',note=clean(req.body.admin_note);const r=(await q('UPDATE support_tickets SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *',[status,note,req.params.id])).rows[0];if(!r)return res.status(404).json({error:'Destek kaydı bulunamadı'});await adminAudit(req,'support_updated','support',r.id,{status});res.json(r)}catch(e){next(e)}});
 
-app.get('/api/health',(req,res)=>res.json({ok:true,version:'16.1.0',product:'Dijital Makinacı V16 Admin Center'}));
+app.get('/api/health',(req,res)=>res.json({ok:true,version:'16.2.0',product:'Dijital Makinacı V16.2 Pro CMMS'}));
 app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 app.get('/admin/',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.use((err,req,res,next)=>{console.error(err);if(err?.code==='LIMIT_FILE_SIZE')return res.status(413).json({error:'Dosya en fazla 5 MB olabilir'});res.status(500).json({error:'Sunucu hatası'})});
 
-initDb().then(()=>app.listen(PORT,()=>console.log(`Dijital Makinacı V16 http://localhost:${PORT}`))).catch(e=>{console.error('DB init hatası:',e);process.exit(1)});
+initDb().then(()=>app.listen(PORT,()=>console.log(`Dijital Makinacı V16.2 http://localhost:${PORT}`))).catch(e=>{console.error('DB init hatası:',e);process.exit(1)});
