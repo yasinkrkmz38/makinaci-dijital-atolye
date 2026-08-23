@@ -534,3 +534,809 @@ body{font-size:15px}.eyebrow{font-size:10px}.field label{font-size:12px}.field i
 @media(max-width:900px){.depotLayout{grid-template-columns:1fr}.depotForm{position:static}.accountGrid{grid-template-columns:1fr}.depotCards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){body{font-size:15px}.sectionHeader h2{font-size:28px}.sectionHeader p{font-size:13px}.topbar h1{font-size:25px}.hero p{font-size:13px}.kpi small{font-size:9px}.kpi span{font-size:10px}.stockKpis{grid-template-columns:1fr 1fr}.stockKpis>div{padding:13px}.stockKpis b{font-size:23px}.depotToolbar{display:grid;grid-template-columns:1fr 1fr}.depotSearch{grid-column:1/-1}.depotToolbar select{min-width:0}.depotToolbar .check{grid-column:1/-1}.depotLegend{flex-wrap:wrap}.depotLegend b{width:100%;margin:0}.depotCards{grid-template-columns:1fr}.stockActions{grid-template-columns:1fr 1fr}.accountProfile{grid-template-columns:58px 1fr}.accountAvatar{width:58px;height:58px;border-radius:16px}.standaloneCard{padding:22px}.standaloneCard h1{font-size:28px}.movementRow{grid-template-columns:34px 1fr}.movementRow>div:last-child{grid-column:2;text-align:left}.mobileMore button{font-size:13px}.mobileNav small{font-size:9px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+/* =========================================================
+   DIJITAL MAKINACI V16.2.2 — PREMIUM MOBILE UI
+   Append AFTER the existing V16.2.1 mobile patch.
+   Pure visual/mobile layer; existing functions remain intact.
+   ========================================================= */
+
+@media (max-width:900px){
+  :root{
+    --m-bg:#061014;
+    --m-surface:#0a181e;
+    --m-surface-2:#0d2027;
+    --m-line:#1b323b;
+    --m-line-strong:#2b4b55;
+    --m-text:#edf7f3;
+    --m-muted:#7d9299;
+    --m-green:#67f29e;
+    --m-green-soft:#67f29e18;
+    --m-red:#ff8273;
+    --m-amber:#efc36a;
+  }
+
+  html{background:var(--m-bg)}
+  body{
+    background:
+      radial-gradient(circle at 105% -8%,#17472f55 0,transparent 30%),
+      radial-gradient(circle at -10% 36%,#12374735 0,transparent 28%),
+      var(--m-bg);
+    color:var(--m-text);
+  }
+
+  .app{
+    background:transparent;
+    min-height:100dvh;
+  }
+
+  .sidebar+main{
+    padding:12px 12px calc(108px + env(safe-area-inset-bottom));
+  }
+
+  /* ---------- PREMIUM HEADER ---------- */
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:100;
+    margin:-1px -12px 16px;
+    padding:11px 12px 12px;
+    border-bottom:1px solid #173039;
+    background:
+      linear-gradient(180deg,#07151beF 0,#071217ed 100%);
+    backdrop-filter:blur(22px) saturate(125%);
+    box-shadow:0 12px 32px #0005;
+  }
+
+  .topbar>div:first-child{
+    padding-right:52px;
+  }
+
+  .topbar h1{
+    font-size:23px;
+    font-weight:900;
+    letter-spacing:-.7px;
+    margin:0 0 9px;
+    color:#f4fbf8;
+  }
+
+  .topbar .eyebrow{
+    display:none;
+  }
+
+  .topActions{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:8px;
+    width:100%;
+  }
+
+  .companyQuick{
+    position:relative;
+    width:calc(100% - 52px);
+    margin:0;
+    min-height:48px;
+    border:1px solid #21404a;
+    border-radius:14px;
+    padding:7px 11px;
+    background:linear-gradient(145deg,#0b1c22,#0a171c);
+    box-shadow:inset 0 1px #ffffff08;
+  }
+
+  .companyQuick:before{
+    content:'';
+    position:absolute;
+    left:0;
+    top:12px;
+    bottom:12px;
+    width:3px;
+    border-radius:0 3px 3px 0;
+    background:var(--m-green);
+    box-shadow:0 0 13px #67f29e88;
+  }
+
+  .companyQuick small{
+    color:#698088;
+    font-size:8px;
+    letter-spacing:1.1px;
+  }
+
+  .companyQuick select{
+    width:100%;
+    max-width:none;
+    color:#e8f4f0;
+    font-size:12px;
+    font-weight:850;
+    min-height:25px;
+  }
+
+  .notificationBtn{
+    position:absolute;
+    right:12px;
+    top:44px;
+    width:44px;
+    height:44px;
+    min-height:44px;
+    border-radius:14px;
+    border:1px solid #26434c;
+    background:linear-gradient(145deg,#0d2026,#09171c);
+    box-shadow:0 8px 20px #0005,inset 0 1px #ffffff0a;
+  }
+
+  .globalSearch{
+    width:100%;
+    margin:0;
+    padding:0;
+  }
+
+  .globalSearch input{
+    min-height:50px;
+    padding:13px 14px 13px 42px;
+    border-radius:15px;
+    border:1px solid #1f3a43;
+    background:
+      linear-gradient(145deg,#09191f,#08151a);
+    color:#eaf5f1;
+    box-shadow:inset 0 1px #ffffff08;
+  }
+
+  .globalSearch:before{
+    content:'⌕';
+    position:absolute;
+    left:15px;
+    top:10px;
+    z-index:2;
+    color:#6f8b93;
+    font-size:24px;
+    line-height:28px;
+    pointer-events:none;
+  }
+
+  .globalResults{
+    top:56px;
+    border:1px solid #2b4a54;
+    border-radius:15px;
+    background:#08171df8;
+    box-shadow:0 22px 60px #000b;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    display:block;
+    padding:22px 18px 19px;
+    border:1px solid #24413c;
+    border-radius:22px;
+    background:
+      radial-gradient(circle at 95% 0%,#2e8c5665 0,transparent 32%),
+      radial-gradient(circle at 15% 110%,#123e4e55 0,transparent 38%),
+      linear-gradient(145deg,#0d1e22 0,#09161b 75%);
+    box-shadow:0 18px 45px #0004,inset 0 1px #ffffff0a;
+  }
+
+  .hero:before{
+    content:'';
+    position:absolute;
+    width:130px;
+    height:130px;
+    right:-42px;
+    top:-48px;
+    border:1px solid #65ef9b25;
+    border-radius:50%;
+    box-shadow:
+      0 0 0 18px #65ef9b08,
+      0 0 0 38px #65ef9b05;
+  }
+
+  .hero .badge{
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:1px;
+    border-color:#397052;
+    background:#112a1d;
+  }
+
+  .hero h2{
+    max-width:330px;
+    font-size:31px;
+    line-height:1.03;
+    letter-spacing:-1.2px;
+    margin:14px 0 11px;
+  }
+
+  .hero h2 em{
+    text-shadow:0 0 24px #67f29e30;
+  }
+
+  .hero p{
+    max-width:500px;
+    color:#8da1a7;
+    font-size:12px;
+    line-height:1.62;
+    margin-bottom:0;
+  }
+
+  .heroBtns{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:8px;
+    margin-top:17px;
+  }
+
+  .heroBtns button{
+    min-height:49px;
+    border-radius:13px;
+    font-size:11px;
+  }
+
+  .heroBtns .primary{
+    box-shadow:0 10px 24px #65ef9b18;
+  }
+
+  /* ---------- KPI ---------- */
+  .kpiGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+    margin:11px 0;
+  }
+
+  .kpi{
+    position:relative;
+    overflow:hidden;
+    min-height:105px;
+    padding:14px 14px 13px;
+    border:1px solid #1c343c;
+    border-radius:17px;
+    background:
+      linear-gradient(145deg,#0c1b21,#08151a);
+    box-shadow:inset 0 1px #ffffff07;
+  }
+
+  .kpi:after{
+    content:'';
+    position:absolute;
+    right:-18px;
+    top:-25px;
+    width:73px;
+    height:73px;
+    border-radius:50%;
+    background:#65ef9b08;
+  }
+
+  .kpi small{
+    color:#71868d;
+    font-size:8px;
+    letter-spacing:.8px;
+    font-weight:750;
+  }
+
+  .kpi b{
+    font-size:27px;
+    line-height:1;
+    margin:8px 0 7px;
+    letter-spacing:-.8px;
+  }
+
+  .kpi span{
+    color:#667b82;
+    font-size:9px;
+  }
+
+  .dangerKpi{
+    border-color:#53302d;
+    background:linear-gradient(145deg,#171515,#0b1518);
+  }
+
+  .dangerKpi:after{background:#ff82730b}
+
+  /* ---------- PANELS ---------- */
+  .dashboardGrid,
+  .workspaceGrid,
+  .diagnosisGrid,
+  .toolArea,
+  .accountGrid,
+  .teamGrid{
+    gap:11px;
+  }
+
+  .panel{
+    border:1px solid #1d353d;
+    border-radius:18px;
+    padding:15px;
+    background:
+      linear-gradient(150deg,#0b1a20 0,#08151a 100%);
+    box-shadow:0 9px 24px #0002,inset 0 1px #ffffff06;
+  }
+
+  .panelHead{
+    padding-bottom:10px;
+    border-bottom:1px solid #152b32;
+    margin-bottom:12px;
+  }
+
+  .panelHead h3{
+    font-size:16px;
+    letter-spacing:-.2px;
+  }
+
+  .panelHead small{
+    font-size:8px;
+    color:#657a82;
+  }
+
+  .textBtn{
+    padding:8px 10px;
+    min-height:38px;
+    border-radius:10px;
+    background:#0b2018;
+    border:1px solid #244b36;
+  }
+
+  /* ---------- PAGE HEADERS ---------- */
+  .sectionHeader{
+    margin:2px 1px 15px;
+  }
+
+  .sectionHeader .badge{
+    font-size:9px;
+    font-weight:850;
+  }
+
+  .sectionHeader h2{
+    font-size:27px;
+    line-height:1.06;
+    letter-spacing:-.9px;
+    margin:9px 0 6px;
+  }
+
+  .sectionHeader p{
+    color:#7f9299;
+    font-size:12px;
+    line-height:1.55;
+  }
+
+  .sectionHeader>button{
+    min-height:48px;
+    border-radius:13px;
+  }
+
+  /* ---------- MACHINE / PART / FAULT CARDS ---------- */
+  .machineGrid,.partsGrid,.faultGrid,.libraryGrid,.depotCards{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  .machineCard,.partCard,.faultCard,.article{
+    position:relative;
+    overflow:hidden;
+    border:1px solid #1e3941;
+    border-radius:18px;
+    background:
+      linear-gradient(150deg,#0b1b21,#08151a);
+    box-shadow:0 10px 26px #0002,inset 0 1px #ffffff06;
+  }
+
+  .machineCard{
+    padding:15px;
+  }
+
+  .machineCard:before{
+    content:'';
+    position:absolute;
+    left:0;
+    top:16px;
+    bottom:16px;
+    width:3px;
+    border-radius:0 4px 4px 0;
+    background:#315b47;
+  }
+
+  .machineCard h3,.partCard h3{
+    font-size:15px;
+    letter-spacing:-.2px;
+  }
+
+  .machineStatus{
+    padding:6px 9px;
+    font-size:8px;
+    font-weight:850;
+    border:1px solid #2f6144;
+  }
+
+  .machineMetrics{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    margin:13px 0;
+  }
+
+  .machineMetrics div{
+    border:1px solid #17313a;
+    background:#071419;
+    border-radius:10px;
+    padding:9px 8px;
+  }
+
+  .machineMetrics small{
+    color:#607980;
+    font-size:7px;
+  }
+
+  .machineMetrics b{
+    color:#dfeae7;
+    font-size:10px;
+    margin-top:4px;
+  }
+
+  .cardActions{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+  }
+
+  .cardActions button{
+    min-height:42px;
+    border-radius:10px;
+    font-size:10px;
+    border-color:#254049;
+    background:#0b1c22;
+  }
+
+  /* ---------- FORMS ---------- */
+  .field{
+    margin-top:10px;
+  }
+
+  .field label{
+    margin:0 0 6px 2px;
+    color:#81939a;
+    font-size:10px;
+    font-weight:700;
+  }
+
+  .field input,.field select,.field textarea,
+  .filterBar input,.filterBar select,
+  .libraryToolbar input,.libraryToolbar select,
+  .depotToolbar input,.depotToolbar select{
+    min-height:50px;
+    border-radius:13px;
+    border:1px solid #203b44;
+    background:#07161c;
+    color:#edf6f2;
+    padding:12px 13px;
+    font-size:16px;
+    box-shadow:inset 0 1px #ffffff05;
+  }
+
+  .field input:focus,.field select:focus,.field textarea:focus,
+  .filterBar input:focus,.libraryToolbar input:focus{
+    border-color:#3f7758;
+    box-shadow:0 0 0 3px #65ef9b11;
+  }
+
+  .primary,.ghost,.dangerBtn{
+    border-radius:12px;
+  }
+
+  /* ---------- FILTERS ---------- */
+  .filterBar,.libraryToolbar{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:7px;
+  }
+
+  /* ---------- TOOLS ---------- */
+  .toolCards{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+
+  .toolCard{
+    min-height:120px;
+    border-radius:17px;
+    padding:15px;
+    border:1px solid #1c353d;
+    background:
+      radial-gradient(circle at 100% 0,#65ef9b0b,transparent 35%),
+      linear-gradient(145deg,#0b1b21,#08151a);
+  }
+
+  .toolCard b{
+    font-size:12px;
+    margin-top:17px;
+  }
+
+  .toolCard small{
+    font-size:9px;
+    color:#70858b;
+  }
+
+  /* ---------- STOCK ---------- */
+  .stockKpis{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+
+  .stockKpis>div{
+    border-radius:17px;
+    padding:14px;
+  }
+
+  .stockActions{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+  }
+
+  .stockActions button{
+    min-height:45px;
+    border-radius:10px;
+  }
+
+  /* ---------- JOBS ---------- */
+  .job{
+    grid-template-columns:1fr;
+    gap:10px;
+    border-radius:15px;
+    padding:13px;
+  }
+
+  .jobActions,.jobSide .cardActions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+  }
+
+  /* ---------- CALENDAR ---------- */
+  .calendarShell{
+    border-radius:17px;
+    border-color:#203b43;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    box-shadow:0 10px 25px #0002;
+  }
+
+  .weekHeader,.calendarGrid{
+    min-width:600px;
+  }
+
+  /* ---------- MODAL / SHEET ---------- */
+  .modal{
+    place-items:end center;
+    padding:0;
+    background:#000c;
+    backdrop-filter:blur(5px);
+  }
+
+  .modalCard{
+    width:100%;
+    max-width:680px;
+    max-height:90dvh;
+    border-radius:24px 24px 0 0;
+    border:1px solid #29454f;
+    border-bottom:0;
+    padding:16px 15px calc(20px + env(safe-area-inset-bottom));
+    background:
+      linear-gradient(170deg,#0c1d23,#071419);
+    box-shadow:0 -20px 60px #0009;
+  }
+
+  .modalCard:before{
+    content:'';
+    display:block;
+    width:44px;
+    height:4px;
+    margin:-5px auto 12px;
+    border-radius:999px;
+    background:#31464d;
+  }
+
+  .modalClose{
+    width:42px;
+    height:42px;
+    min-height:42px;
+    border-radius:13px;
+  }
+
+  /* ---------- FLOATING MOBILE NAV ---------- */
+  .mobileNav{
+    left:10px;
+    right:10px;
+    bottom:calc(9px + env(safe-area-inset-bottom));
+    height:76px;
+    padding:6px;
+    border:1px solid #2a4650;
+    border-radius:22px;
+    background:
+      linear-gradient(180deg,#0b1a20f8,#071319f8);
+    box-shadow:
+      0 18px 50px #000c,
+      inset 0 1px #ffffff0c;
+    backdrop-filter:blur(22px) saturate(125%);
+  }
+
+  .mobileNav button{
+    min-height:62px;
+    border-radius:16px;
+    color:#71868d;
+    font-size:19px;
+    font-weight:900;
+    gap:3px;
+    transition:transform .15s ease,background .15s ease,color .15s ease;
+  }
+
+  .mobileNav button:active{
+    transform:scale(.94);
+  }
+
+  .mobileNav button.active{
+    color:var(--m-green);
+    background:
+      linear-gradient(145deg,#143524,#0b2419);
+    box-shadow:
+      inset 0 0 0 1px #326046,
+      0 5px 14px #0004;
+  }
+
+  .mobileNav button.active:after{
+    bottom:5px;
+    width:22px;
+    height:2px;
+    background:var(--m-green);
+    box-shadow:0 0 10px #67f29eaa;
+  }
+
+  .mobileNav small{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.1px;
+  }
+
+  /* ---------- APP-LIKE MORE MENU ---------- */
+  .mobileMore{
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    left:10px;
+    right:10px;
+    bottom:calc(96px + env(safe-area-inset-bottom));
+    max-height:66dvh;
+    padding:10px;
+    border-radius:22px;
+    border:1px solid #2a4852;
+    background:
+      linear-gradient(160deg,#0d2027f9,#07151bf9);
+    box-shadow:0 25px 75px #000e;
+    backdrop-filter:blur(24px);
+  }
+
+  .mobileMore:before{
+    content:'HIZLI MENÜ';
+    grid-column:1/-1;
+    padding:4px 5px 2px;
+    color:#698088;
+    font-size:9px;
+    font-weight:850;
+    letter-spacing:1.2px;
+  }
+
+  .mobileMore button{
+    min-height:59px;
+    border-radius:14px;
+    border:1px solid #1e3841;
+    background:
+      linear-gradient(145deg,#0c1d23,#09171d);
+    color:#dfe9e7;
+    padding:12px;
+    font-size:11px;
+    font-weight:750;
+    box-shadow:inset 0 1px #ffffff05;
+  }
+
+  .mobileMore button:active{
+    transform:scale(.98);
+  }
+
+  .mobileMore button:last-child{
+    color:#ff9b8c;
+    border-color:#56332e;
+    background:#1a1313;
+  }
+
+  /* ---------- TOAST ---------- */
+  .toast{
+    left:12px;
+    right:12px;
+    bottom:calc(102px + env(safe-area-inset-bottom));
+    border-radius:13px;
+    border-color:#315447;
+    background:#0b1d17f5;
+    box-shadow:0 15px 40px #0009;
+  }
+}
+
+@media (max-width:620px){
+  .sidebar+main{
+    padding:10px 10px calc(108px + env(safe-area-inset-bottom));
+  }
+
+  .topbar{
+    margin:-1px -10px 14px;
+    padding:10px 10px 11px;
+  }
+
+  .topbar h1{
+    font-size:22px;
+  }
+
+  .companyQuick{
+    width:calc(100% - 50px);
+  }
+
+  .notificationBtn{
+    right:10px;
+    top:43px;
+  }
+
+  .hero{
+    border-radius:20px;
+    padding:20px 16px 17px;
+  }
+
+  .hero h2{
+    font-size:29px;
+  }
+
+  .heroBtns{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .sectionHeader h2{
+    font-size:26px;
+  }
+
+  .detailGrid{
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+
+  .detailCell{
+    border-radius:11px;
+    padding:10px;
+  }
+
+  .machineTabs{
+    margin-left:-2px;
+    margin-right:-2px;
+    gap:6px;
+    padding-bottom:9px;
+  }
+
+  .machineTabs button{
+    min-height:42px;
+    padding:9px 11px;
+    border-radius:10px;
+    font-size:9px;
+  }
+
+  .quickStrip{
+    grid-template-columns:1fr 1fr;
+    border-radius:15px;
+  }
+
+  .quickStrip>div:last-child{
+    grid-column:1/-1;
+  }
+}
+
+@media (max-width:380px){
+  .heroBtns{grid-template-columns:1fr}
+  .mobileMore{grid-template-columns:1fr}
+  .toolCards{grid-template-columns:1fr 1fr}
+  .kpiGrid{grid-template-columns:1fr 1fr}
+  .mobileNav{
+    left:6px;
+    right:6px;
+  }
+  .mobileNav small{font-size:8px}
+}
+
