@@ -1,7 +1,6 @@
-const VERSION='dm-v17.2-login-stability-p4';
+const VERSION='dm-v17.2-login-hardfix-p5';
 const MOBILE_CSS='/appstore-v17.css?v=17.2.0';
 const INTEGRITY_JS='/v172-integrity.js?v=17.2.0';
-const LOGIN_FIX_JS='/v172-login-hotfix.js?v=17.2.0';
 
 const SHELL=[
   '/',
@@ -10,7 +9,6 @@ const SHELL=[
   '/manifest.webmanifest?v=16.2.1',
   MOBILE_CSS,
   INTEGRITY_JS,
-  LOGIN_FIX_JS,
   '/forgot-password.html',
   '/reset-password.html',
   '/icon-192.png',
@@ -34,9 +32,8 @@ self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
     const keys=await caches.keys();
     await Promise.all(
-      keys
-        .filter(key=>key.startsWith('dm-') && key!==VERSION)
-        .map(key=>caches.delete(key))
+      keys.filter(key=>key.startsWith('dm-')&&key!==VERSION)
+          .map(key=>caches.delete(key))
     );
     await self.clients.claim();
   })());
@@ -48,14 +45,14 @@ async function mergedStyle(request){
     fetch(MOBILE_CSS,{cache:'no-store'})
   ]);
 
-  if(baseResult.status!=='fulfilled' || !baseResult.value.ok){
+  if(baseResult.status!=='fulfilled'||!baseResult.value.ok){
     return fetch(request);
   }
 
   const base=baseResult.value;
   let mobile='';
 
-  if(mobileResult.status==='fulfilled' && mobileResult.value.ok){
+  if(mobileResult.status==='fulfilled'&&mobileResult.value.ok){
     mobile=await mobileResult.value.text();
   }
 
@@ -67,48 +64,56 @@ async function mergedStyle(request){
   headers.set('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
   headers.delete('Content-Length');
 
-  return new Response(`${css}\n\n/* DIJITAL MAKINACI MOBILE PRO V17.2 */\n${mobile}`,{
-    status:base.status,
-    statusText:base.statusText,
-    headers
-  });
+  return new Response(
+    `${css}\n\n/* DIJITAL MAKINACI MOBILE PRO V17.2 */\n${mobile}`,
+    {status:base.status,statusText:base.statusText,headers}
+  );
+}
+
+function patchLoginFlow(js){
+  const oldLogin="async function playLoginTransition(){let e=$('loginTransition');if(!e)return;e.classList.remove('hide');await sleep(window.matchMedia('(prefers-reduced-motion: reduce)').matches?120:780);e.classList.add('hide')}";
+  const newLogin="async function playLoginTransition(){let e=$('loginTransition');if(e){e.classList.add('hide');e.style.display='none'}return}";
+
+  const oldBoot="function finishBootSplash(){let e=$('bootSplash');if(!e)return;setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),420)},window.matchMedia('(prefers-reduced-motion: reduce)').matches?80:650)}";
+  const newBoot="function finishBootSplash(){let e=$('bootSplash');if(e)e.remove()}";
+
+  let out=js.replace(oldLogin,newLogin).replace(oldBoot,newBoot);
+
+  const prefix=`/* DM LOGIN HARD FIX P5 */
+(()=>{const kill=()=>{for(const id of ['loginTransition','bootSplash']){const e=document.getElementById(id);if(e){e.classList.add('hide','out');e.style.setProperty('display','none','important');e.style.setProperty('visibility','hidden','important');e.style.setProperty('opacity','0','important');e.style.setProperty('pointer-events','none','important')}}};kill();document.addEventListener('DOMContentLoaded',kill,{once:true});window.addEventListener('pageshow',kill);})();
+`;
+
+  return prefix+out;
 }
 
 async function mergedApp(request){
-  const [baseResult,integrityResult,loginFixResult]=await Promise.allSettled([
+  const [baseResult,integrityResult]=await Promise.allSettled([
     fetch(request,{cache:'no-store'}),
-    fetch(INTEGRITY_JS,{cache:'no-store'}),
-    fetch(LOGIN_FIX_JS,{cache:'no-store'})
+    fetch(INTEGRITY_JS,{cache:'no-store'})
   ]);
 
-  if(baseResult.status!=='fulfilled' || !baseResult.value.ok){
+  if(baseResult.status!=='fulfilled'||!baseResult.value.ok){
     return fetch(request);
   }
 
   const base=baseResult.value;
   let integrity='';
-  let loginFix='';
 
-  if(integrityResult.status==='fulfilled' && integrityResult.value.ok){
+  if(integrityResult.status==='fulfilled'&&integrityResult.value.ok){
     integrity=await integrityResult.value.text();
   }
-  if(loginFixResult.status==='fulfilled' && loginFixResult.value.ok){
-    loginFix=await loginFixResult.value.text();
-  }
 
-  const js=await base.text();
+  let js=await base.text();
+  js=patchLoginFlow(js);
+
   const headers=new Headers(base.headers);
   headers.set('Content-Type','application/javascript; charset=utf-8');
   headers.set('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
   headers.delete('Content-Length');
 
   return new Response(
-    `${js}\n\n/* DIJITAL MAKINACI V17.2 P3 INTEGRITY */\n${integrity}\n\n/* LOGIN STABILITY HOTFIX */\n${loginFix}`,
-    {
-      status:base.status,
-      statusText:base.statusText,
-      headers
-    }
+    `${js}\n\n/* DIJITAL MAKINACI V17.2 P3 INTEGRITY */\n${integrity}`,
+    {status:base.status,statusText:base.statusText,headers}
   );
 }
 
@@ -117,8 +122,6 @@ self.addEventListener('fetch',event=>{
   const url=new URL(request.url);
 
   if(url.origin!==self.location.origin)return;
-
-  // API'ler hiçbir koşulda SW cache/transform katmanına girmez.
   if(url.pathname.startsWith('/api/'))return;
   if(request.method!=='GET')return;
 
@@ -142,7 +145,7 @@ self.addEventListener('fetch',event=>{
         }
         return response;
       }catch{
-        return (await caches.match('/')) || Response.error();
+        return (await caches.match('/'))||Response.error();
       }
     })());
     return;
@@ -150,14 +153,14 @@ self.addEventListener('fetch',event=>{
 
   event.respondWith((async()=>{
     try{
-      const response=await fetch(request);
+      const response=await fetch(request,{cache:'no-store'});
       if(response.ok){
         const cache=await caches.open(VERSION);
         cache.put(request,response.clone()).catch(()=>{});
       }
       return response;
     }catch{
-      return (await caches.match(request)) || Response.error();
+      return (await caches.match(request))||Response.error();
     }
   })());
 });
