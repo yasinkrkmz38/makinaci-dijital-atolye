@@ -16,8 +16,14 @@ for (const file of jsFiles) execFileSync(process.execPath, ['--check', path.join
 
 const start = fs.readFileSync(path.join(root, 'start.js'), 'utf8');
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+const client = fs.readFileSync(path.join(root, 'v1621-app.js'), 'utf8');
+const worker = fs.readFileSync(path.join(root, 'v1621-service-worker.js'), 'utf8');
 if (!start.includes(`'${pkg.version}'`)) throw new Error('start.js ile package.json sürümleri farklı');
 if (!server.includes(`'${pkg.version}'`)) throw new Error('server.js ile package.json sürümleri farklı');
 if (pkg.scripts.start !== 'node start.js') throw new Error('npm start güvenli başlangıç dosyasını kullanmıyor');
+for (const binding of ["authMode('login')", "authMode('register')", "addEventListener('click',submitAuth)"]) {
+  if (!client.includes(binding)) throw new Error(`Eksik giriş ekranı bağlantısı: ${binding}`);
+}
+if (!worker.includes('auth-controls-p6')) throw new Error('Service worker önbellek sürümü güncel değil');
 
 console.log(`Dijital Makinacı V${pkg.version}: kontroller başarılı.`);

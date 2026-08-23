@@ -167,4 +167,20 @@ async function loadPublicSettings(){try{let s=await api('/api/public/settings');
 fillSymptoms();loadPublicSettings();checkAuth();
 
 
+// Giriş ekranı olaylarını CSP, eski PWA önbelleği ve tarayıcı farklarından
+// bağımsız olarak bağla. HTML içindeki eski onclick niteliklerini de devre dışı
+// bırakarak aynı isteğin iki kez gönderilmesini önler.
+function bindAuthControls(){
+  const login=$('loginTab'),register=$('registerTab');
+  const submit=document.querySelector('#authGate .authCard .primary.wide');
+  if(login){login.onclick=null;login.addEventListener('click',()=>authMode('login'))}
+  if(register){register.onclick=null;register.addEventListener('click',()=>authMode('register'))}
+  if(submit){submit.onclick=null;submit.addEventListener('click',submitAuth)}
+  document.querySelectorAll('#authGate input').forEach(input=>input.addEventListener('keydown',event=>{
+    if(event.key==='Enter'){event.preventDefault();submitAuth()}
+  }));
+}
+bindAuthControls();
+
+
 window.addEventListener('load',finishBootSplash);

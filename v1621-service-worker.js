@@ -1,11 +1,11 @@
-const VERSION='dm-v17.2-login-hardfix-p5';
+const VERSION='dm-v17.2-auth-controls-p6';
 const MOBILE_CSS='/appstore-v17.css?v=17.2.0';
 const INTEGRITY_JS='/v172-integrity.js?v=17.2.0';
 
 const SHELL=[
   '/',
-  '/v1621-app.js?v=16.2.1',
-  '/v1621-style.css?v=16.2.1',
+  '/v1621-app.js?v=17.2.3',
+  '/v1621-style.css?v=17.2.3',
   '/manifest.webmanifest?v=16.2.1',
   MOBILE_CSS,
   INTEGRITY_JS,
