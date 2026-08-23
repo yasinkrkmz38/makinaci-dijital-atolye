@@ -21,7 +21,10 @@ const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024
 
 app.set('trust proxy',1);
 if(process.env.NODE_ENV==='production'){app.use((req,res,next)=>{const proto=String(req.headers['x-forwarded-proto']||'').split(',')[0].trim();if(req.secure||proto==='https')return next();const host=req.get('host');if(!host)return next();return res.redirect(308,`https://${host}${req.originalUrl}`)});}
-app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],baseUri:["'self'"],fontSrc:["'self'","data:"],formAction:["'self'"],frameAncestors:["'none'"],imgSrc:["'self'","data:","blob:"],objectSrc:["'none'"],scriptSrc:["'self'","'unsafe-inline'"],scriptSrcAttr:["'unsafe-inline'"],styleSrc:["'self'","'unsafe-inline'"],connectSrc:["'self'"]}}}));
+// Arayüzün mevcut sürümü HTML içi olay işleyicileri kullanıyor. Helmet'in
+// diğer güvenlik başlıklarını korurken CSP, olaylar ayrı JS modüllerine
+// taşınana kadar devre dışı bırakılmalıdır.
+app.use(helmet({contentSecurityPolicy:false}));
 app.use(express.json({limit:'700kb'}));
 app.use(cookieParser());
 app.use((req,res,next)=>{if(req.path==='/manifest.webmanifest')res.type('application/manifest+json');if(req.path==='/service-worker.js')res.setHeader('Service-Worker-Allowed','/');next()});

@@ -25,5 +25,6 @@ for (const binding of ["authMode('login')", "authMode('register')", "addEventLis
   if (!client.includes(binding)) throw new Error(`Eksik giriş ekranı bağlantısı: ${binding}`);
 }
 if (!worker.includes('auth-controls-p6')) throw new Error('Service worker önbellek sürümü güncel değil');
+if (!server.includes('contentSecurityPolicy:false')) throw new Error('Mevcut HTML olaylarıyla uyumsuz CSP ayarı etkin');
 
 console.log(`Dijital Makinacı V${pkg.version}: kontroller başarılı.`);
