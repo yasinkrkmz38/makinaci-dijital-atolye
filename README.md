@@ -2,6 +2,8 @@
 
 Makine parkı, bakım, arıza, iş emri, ölçüm ve yedek parça süreçlerini tek çalışma alanında yöneten çok firmalı bir CMMS uygulamasıdır.
 
+Kalıcı proje bağlamı için `PROJECT.md`, yapılan değişiklikler için `CHANGELOG.md` dosyasına bakın.
+
 ## Gereksinimler
 
 - Node.js 20 veya üzeri
