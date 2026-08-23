@@ -1,6 +1,7 @@
-const VERSION='dm-v17.2-integrity-p3';
+const VERSION='dm-v17.2-login-stability-p4';
 const MOBILE_CSS='/appstore-v17.css?v=17.2.0';
 const INTEGRITY_JS='/v172-integrity.js?v=17.2.0';
+const LOGIN_FIX_JS='/v172-login-hotfix.js?v=17.2.0';
 
 const SHELL=[
   '/',
@@ -9,6 +10,7 @@ const SHELL=[
   '/manifest.webmanifest?v=16.2.1',
   MOBILE_CSS,
   INTEGRITY_JS,
+  LOGIN_FIX_JS,
   '/forgot-password.html',
   '/reset-password.html',
   '/icon-192.png',
@@ -73,9 +75,10 @@ async function mergedStyle(request){
 }
 
 async function mergedApp(request){
-  const [baseResult,fixResult]=await Promise.allSettled([
+  const [baseResult,integrityResult,loginFixResult]=await Promise.allSettled([
     fetch(request,{cache:'no-store'}),
-    fetch(INTEGRITY_JS,{cache:'no-store'})
+    fetch(INTEGRITY_JS,{cache:'no-store'}),
+    fetch(LOGIN_FIX_JS,{cache:'no-store'})
   ]);
 
   if(baseResult.status!=='fulfilled' || !baseResult.value.ok){
@@ -83,13 +86,15 @@ async function mergedApp(request){
   }
 
   const base=baseResult.value;
-  let fixes='';
+  let integrity='';
+  let loginFix='';
 
-  if(fixResult.status==='fulfilled' && fixResult.value.ok){
-    fixes=await fixResult.value.text();
+  if(integrityResult.status==='fulfilled' && integrityResult.value.ok){
+    integrity=await integrityResult.value.text();
   }
-
-  if(!fixes)return base;
+  if(loginFixResult.status==='fulfilled' && loginFixResult.value.ok){
+    loginFix=await loginFixResult.value.text();
+  }
 
   const js=await base.text();
   const headers=new Headers(base.headers);
@@ -97,11 +102,14 @@ async function mergedApp(request){
   headers.set('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
   headers.delete('Content-Length');
 
-  return new Response(`${js}\n\n/* DIJITAL MAKINACI V17.2 P3 */\n${fixes}`,{
-    status:base.status,
-    statusText:base.statusText,
-    headers
-  });
+  return new Response(
+    `${js}\n\n/* DIJITAL MAKINACI V17.2 P3 INTEGRITY */\n${integrity}\n\n/* LOGIN STABILITY HOTFIX */\n${loginFix}`,
+    {
+      status:base.status,
+      statusText:base.statusText,
+      headers
+    }
+  );
 }
 
 self.addEventListener('fetch',event=>{
