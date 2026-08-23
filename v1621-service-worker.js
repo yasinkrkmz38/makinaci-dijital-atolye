@@ -1,8 +1,10 @@
-const VERSION='dm-v17.1-appstore-mobile';
-const MOBILE_CSS='/appstore-v17.css?v=17.1.0';
+const VERSION='dm-v17.2-stable-pwa';
+const MOBILE_CSS='/appstore-v17.css?v=17.2.0';
+
 const SHELL=[
   '/',
   '/v1621-app.js?v=16.2.1',
+  '/v1621-style.css?v=16.2.1',
   '/manifest.webmanifest?v=16.2.1',
   MOBILE_CSS,
   '/forgot-password.html',
@@ -12,71 +14,120 @@ const SHELL=[
 ];
 
 self.addEventListener('install',event=>{
-  event.waitUntil(
-    caches.open(VERSION).then(async cache=>{
-      for(const url of SHELL){
-        try{
-          const r=await fetch(url,{cache:'reload'});
-          if(r.ok)await cache.put(url,r.clone());
-        }catch{}
-      }
-    }).then(()=>self.skipWaiting())
-  );
+  event.waitUntil((async()=>{
+    const cache=await caches.open(VERSION);
+    for(const url of SHELL){
+      try{
+        const response=await fetch(url,{cache:'reload'});
+        if(response.ok)await cache.put(url,response.clone());
+      }catch{}
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
     const keys=await caches.keys();
-    await Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)));
+    await Promise.all(
+      keys
+        .filter(key=>key.startsWith('dm-') && key!==VERSION)
+        .map(key=>caches.delete(key))
+    );
+
+    // V17.2: Eski sürümdeki client.navigate() kaldırıldı.
+    // Service-worker güncellemesinde kullanıcı form doldururken
+    // sayfanın zorla yenilenmesini engeller.
     await self.clients.claim();
-    const windows=await self.clients.matchAll({type:'window'});
-    await Promise.all(windows.map(client=>client.navigate(client.url).catch(()=>null)));
   })());
 });
 
-async function mergedStyle(req){
-  const base=await fetch(req,{cache:'no-store'});
-  if(!base.ok)return base;
+async function mergedStyle(request){
+  const [baseResult,mobileResult]=await Promise.allSettled([
+    fetch(request,{cache:'no-store'}),
+    fetch(MOBILE_CSS,{cache:'no-store'})
+  ]);
+
+  if(baseResult.status!=='fulfilled' || !baseResult.value.ok){
+    return fetch(request);
+  }
+
+  const base=baseResult.value;
   let mobile='';
-  try{
-    const extra=await fetch(MOBILE_CSS,{cache:'no-store'});
-    if(extra.ok)mobile=await extra.text();
-  }catch{}
+
+  if(
+    mobileResult.status==='fulfilled' &&
+    mobileResult.value.ok
+  ){
+    mobile=await mobileResult.value.text();
+  }
+
   if(!mobile)return base;
+
   const css=await base.text();
   const headers=new Headers(base.headers);
   headers.set('Content-Type','text/css; charset=utf-8');
   headers.set('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
   headers.delete('Content-Length');
-  return new Response(`${css}\n\n/* APP STORE MOBILE V17.1 */\n${mobile}`,{
-    status:base.status,
-    statusText:base.statusText,
-    headers
-  });
+
+  return new Response(
+    `${css}\n\n/* DIJITAL MAKINACI MOBILE PRO V17.2 */\n${mobile}`,
+    {
+      status:base.status,
+      statusText:base.statusText,
+      headers
+    }
+  );
 }
 
 self.addEventListener('fetch',event=>{
-  const req=event.request;
-  if(req.method!=='GET')return;
-  const url=new URL(req.url);
+  const request=event.request;
+
+  if(request.method!=='GET')return;
+
+  const url=new URL(request.url);
+
   if(url.origin!==self.location.origin)return;
   if(url.pathname.startsWith('/api/'))return;
 
+  // Geçici uyumluluk:
+  // V17 mobil tasarımını mevcut HTML değişmeden koruyor.
+  // Sonraki frontend konsolidasyonunda CSS doğrudan HTML'e bağlanacak.
   if(url.pathname==='/v1621-style.css'){
-    event.respondWith(mergedStyle(req).catch(()=>fetch(req)));
+    event.respondWith(
+      mergedStyle(request).catch(()=>fetch(request))
+    );
     return;
   }
 
-  if(req.mode==='navigate'){
-    event.respondWith(fetch(req,{cache:'no-store'}).catch(()=>caches.match('/')));
+  // HTML navigasyonlarında her zaman önce güncel sunucuyu dene.
+  if(request.mode==='navigate'){
+    event.respondWith((async()=>{
+      try{
+        const response=await fetch(request,{cache:'no-store'});
+        if(response.ok){
+          const cache=await caches.open(VERSION);
+          cache.put('/',response.clone()).catch(()=>{});
+        }
+        return response;
+      }catch{
+        return (await caches.match('/')) || Response.error();
+      }
+    })());
     return;
   }
 
-  event.respondWith(
-    fetch(req).then(r=>{
-      const copy=r.clone();
-      if(r.ok)caches.open(VERSION).then(c=>c.put(req,copy)).catch(()=>{});
-      return r;
-    }).catch(()=>caches.match(req))
-  );
+  // Statik assetlerde network-first; bağlantı yoksa cache fallback.
+  event.respondWith((async()=>{
+    try{
+      const response=await fetch(request);
+      if(response.ok){
+        const cache=await caches.open(VERSION);
+        cache.put(request,response.clone()).catch(()=>{});
+      }
+      return response;
+    }catch{
+      return (await caches.match(request)) || Response.error();
+    }
+  })());
 });
