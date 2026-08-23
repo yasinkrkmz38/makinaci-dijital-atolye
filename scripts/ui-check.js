@@ -21,5 +21,6 @@ if(!app.includes('bindAuthControls()'))throw Error('Giriş kontrolleri programat
 for(const width of ['900px','620px'])if(!css.includes(`max-width:${width}`)&&!css.includes(`max-width: ${width}`))throw Error(`Responsive breakpoint eksik: ${width}`);
 if(!css.includes('safe-area-inset-bottom'))throw Error('Mobil safe-area desteği eksik');
 if(!css.includes('.mobileNav'))throw Error('Mobil alt navigasyon stili eksik');
+if(!html.includes("addEventListener('controllerchange'")||!html.includes('location.reload()'))throw Error('Service worker sürüm geçişi otomatik yenileme koruması eksik');
 
 console.log(`UI kontrolü başarılı: ${pages.length} modül, login ve responsive navigasyon doğrulandı.`);

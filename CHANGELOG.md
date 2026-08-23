@@ -10,6 +10,7 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 - Production routing ve Git geçmişi `7c01605` baseline'ına kadar incelendi.
 - Server doğrudan `0.0.0.0:$PORT` dinleyecek şekilde sadeleştirildi.
 - Service worker JS/CSS rewrite, runtime injection ve login hack'lerinden arındırıldı.
+- Eski service worker devreden çıktığında açık sekmenin yeni sürüme otomatik geçmesi sağlandı.
 - Mobil CSS açık production route ve HTML referansı ile korundu.
 - Login başarı akışı doğrudan `enterApp()` çağrısına bağlandı; blocking overlay kaldırıldı.
 - Makine ve bakım kayıtları için arşivleme/geri yükleme eklendi.
@@ -17,6 +18,7 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 - Stok miktarının metadata PUT isteğiyle değiştirilmesi backend'de engellendi.
 - Atanan kullanıcı/teknisyen firma üyeliği doğrulaması eklendi.
 - Dosya yüklemelerinde MIME ile dosya imzası eşleştirmesi eklendi.
+- Upload middleware güvenlik düzeltmeleri içeren Multer 2.2 sürümüne yükseltildi.
 - Auth endpointleri için ayrı brute-force limitleri eklendi.
 - Eski SQLite/Express 5 kalıntılı lockfile güncel production ağacından üretildi.
 - Mimari invariant, UI ve production smoke testleri eklendi.
