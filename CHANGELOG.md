@@ -12,6 +12,7 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 - Teknik rehberler `TechArticle`, public dizinler `CollectionPage` ve `ItemList` şemasıyla sunucu tarafında render edilmeye başlandı.
 - `/teknik` ve `/hesaplamalar` dizinleri, ana sayfada taranabilir iç bağlantılar ve statik+veritabanı içeriğini birleştiren public makale API'si eklendi.
 - Sitemap 26'dan fazla public URL, lastmod, changefreq ve priority bilgisiyle genişletildi; robots çıktısı ortamın public base URL'sine bağlandı.
+- Google Search Console URL-prefix sahiplik doğrulaması için kalıcı ana sayfa meta etiketi eklendi.
 - JSON-LD için istek başına nonce kullanan sıkı CSP korundu; dinamik makalelerde HTML/JSON kaçışları eklendi.
 - SEO kalite kapısı ve production smoke testi; içerik uzunluğu, metadata, canonical, schema, public dizinler ve sitemap kapsamını denetleyecek şekilde genişletildi.
 
