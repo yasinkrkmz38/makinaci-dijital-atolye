@@ -1,9 +1,9 @@
 {
-  "name": "dijitalmakinaci-v16-2-pro-cmms",
-  "version": "16.2.0",
+  "name": "dijitalmakinaci-v17-2-pro-cmms",
+  "version": "17.2.0",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "start": "node start.js"
   },
   "engines": {
     "node": ">=20"
