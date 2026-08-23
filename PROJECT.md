@@ -87,4 +87,4 @@ GET https://dijitalmakinaci.pro/api/health
 
 ## Güncel durum
 
-23 Ağustos 2026 itibarıyla üretim başlangıcı güvenli hale getirildi, repo hijyeni iyileştirildi, giriş/kayıt kontrolleri güçlendirildi ve canlı buton uyumluluğu düzeltildi. Site Render üzerinde çalışıyor.
+23 Ağustos 2026 itibarıyla kapsamlı V17.2 stabilizasyonu `codex/stabilize-v17-2` dalında yürütülmektedir. Production routing kanıtlandı; startup, login/PWA, lockfile, soft archive, stok bütünlüğü, firma kapsamı, upload doğrulaması ve test mimarisi production kriterlerine göre ele alınmıştır.
