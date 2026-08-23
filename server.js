@@ -9,28 +9,26 @@ const crypto=require('crypto');
 const multer=require('multer');
 const QRCode=require('qrcode');
 const {Pool}=require('pg');
+const {runMigrations}=require('./db/migrate');
 
 const app=express();
 const PORT=Number(process.env.PORT)||10000;
 const HOST='0.0.0.0';
 const APP_VERSION=process.env.APP_VERSION||'17.2.0';
-const JWT_SECRET=process.env.JWT_SECRET||'DEVELOPMENT_ONLY_CHANGE_ME';
+const JWT_SECRET=String(process.env.JWT_SECRET||(process.env.NODE_ENV==='production'?'':'DEVELOPMENT_ONLY_CHANGE_ME'));
 const DATABASE_URL=process.env.DATABASE_URL;
 if(!DATABASE_URL){console.error('DATABASE_URL tanımlı değil.');process.exit(1)}
+if(process.env.NODE_ENV==='production'&&(JWT_SECRET.length<32||JWT_SECRET==='DEVELOPMENT_ONLY_CHANGE_ME')){console.error('Production JWT_SECRET en az 32 karakter ve rastgele olmalı.');process.exit(1)}
 const pool=new Pool({connectionString:DATABASE_URL,ssl:process.env.NODE_ENV==='production'?{rejectUnauthorized:false}:false});
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024,files:1}});
 
 app.set('trust proxy',1);
 if(process.env.NODE_ENV==='production'){app.use((req,res,next)=>{const proto=String(req.headers['x-forwarded-proto']||'').split(',')[0].trim();if(req.secure||proto==='https')return next();const host=req.get('host');if(!host)return next();return res.redirect(308,`https://${host}${req.originalUrl}`)});}
-// Arayüzün mevcut sürümü HTML içi olay işleyicileri kullanıyor. Helmet'in
-// diğer güvenlik başlıklarını korurken CSP, olaylar ayrı JS modüllerine
-// taşınana kadar devre dışı bırakılmalıdır.
-app.use(helmet({contentSecurityPolicy:false}));
+app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],baseUri:["'self'"],objectSrc:["'none'"],frameAncestors:["'none'"],formAction:["'self'"],scriptSrc:["'self'"],scriptSrcAttr:["'unsafe-inline'"],styleSrc:["'self'","'unsafe-inline'"],imgSrc:["'self'",'data:','blob:','https:'],fontSrc:["'self'",'data:'],connectSrc:["'self'"],mediaSrc:["'self'",'blob:'],workerSrc:["'self'",'blob:'],manifestSrc:["'self'"]}}}));
 app.use(express.json({limit:'700kb'}));
 app.use(cookieParser());
 app.use((req,res,next)=>{if(req.path==='/manifest.webmanifest')res.type('application/manifest+json');if(req.path==='/service-worker.js')res.setHeader('Service-Worker-Allowed','/');next()});
-// Production frontend dosyaları repo root'tan açık route'larla servis edilir.
-// public/ yalnızca ikincil statik dosyalar için fallback olarak kullanılır.
+// Tek production frontend kaynağı repo root'taki canonical dosyalardır.
 function rootUiFile(res,file,type){
   res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
   res.setHeader('Pragma','no-cache');
@@ -38,19 +36,33 @@ function rootUiFile(res,file,type){
   if(type)res.type(type);
   return res.sendFile(path.join(__dirname,file));
 }
-app.get(['/', '/index.html'],(req,res)=>rootUiFile(res,'v1621-index.html','html'));
-app.get('/v1621-app.js',(req,res)=>rootUiFile(res,'v1621-app.js','application/javascript'));
-app.get('/v1621-style.css',(req,res)=>rootUiFile(res,'v1621-style.css','text/css'));
-app.get('/appstore-v17.css',(req,res)=>rootUiFile(res,'appstore-v17.css','text/css'));
-app.get('/forgot-password.html',(req,res)=>rootUiFile(res,'v1621-forgot-password.html','html'));
-app.get('/reset-password.html',(req,res)=>rootUiFile(res,'v1621-reset-password.html','html'));
-app.get('/manifest.webmanifest',(req,res)=>rootUiFile(res,'v1621-manifest.webmanifest','application/manifest+json'));
-app.get('/service-worker.js',(req,res)=>{res.setHeader('Service-Worker-Allowed','/');return rootUiFile(res,'v1621-service-worker.js','application/javascript')});
+app.get(['/', '/index.html'],(req,res)=>rootUiFile(res,'index.html','html'));
+app.get(['/app','/app/','/app.html'],(req,res)=>rootUiFile(res,'app.html','html'));
+app.get('/app/*',(req,res)=>rootUiFile(res,'app.html','html'));
+app.get('/app.js',(req,res)=>rootUiFile(res,'app.js','application/javascript'));
+app.get('/style.css',(req,res)=>rootUiFile(res,'style.css','text/css'));
+app.get('/mobile.css',(req,res)=>rootUiFile(res,'mobile.css','text/css'));
+app.get('/site.css',(req,res)=>rootUiFile(res,'site.css','text/css'));
+app.get('/site.js',(req,res)=>rootUiFile(res,'site.js','application/javascript'));
+app.get('/auth-pages.js',(req,res)=>rootUiFile(res,'auth-pages.js','application/javascript'));
+app.get('/pwa.js',(req,res)=>rootUiFile(res,'pwa.js','application/javascript'));
+app.get('/forgot-password.html',(req,res)=>rootUiFile(res,'forgot-password.html','html'));
+app.get('/reset-password.html',(req,res)=>rootUiFile(res,'reset-password.html','html'));
+app.get('/verify-email.html',(req,res)=>rootUiFile(res,'verify-email.html','html'));
+app.get('/hesaplamalar/:slug',(req,res)=>rootUiFile(res,'calculator.html','html'));
+app.get('/teknik/:slug',(req,res)=>rootUiFile(res,'article.html','html'));
+app.get('/manifest.webmanifest',(req,res)=>rootUiFile(res,'manifest.webmanifest','application/manifest+json'));
+app.get('/service-worker.js',(req,res)=>{res.setHeader('Service-Worker-Allowed','/');return rootUiFile(res,'service-worker.js','application/javascript')});
+app.get('/icon-192.png',(req,res)=>rootUiFile(res,'icon-192.png','image/png'));
+app.get('/icon-512.png',(req,res)=>rootUiFile(res,'icon-512.png','image/png'));
+app.get('/apple-touch-icon.png',(req,res)=>rootUiFile(res,'apple-touch-icon.png','image/png'));
+app.get('/v1621-app.js',(req,res)=>res.redirect(308,`/app.js?v=${APP_VERSION}`));
+app.get('/v1621-style.css',(req,res)=>res.redirect(308,`/style.css?v=${APP_VERSION}`));
+app.get('/appstore-v17.css',(req,res)=>res.redirect(308,`/mobile.css?v=${APP_VERSION}`));
 app.get(['/admin','/admin/','/admin.html'],(req,res)=>rootUiFile(res,'admin.html','html'));
 app.get('/admin.js',(req,res)=>rootUiFile(res,'admin.js','application/javascript'));
 app.get('/admin.css',(req,res)=>rootUiFile(res,'admin.css','text/css'));
 
-app.use(express.static(path.join(__dirname,'public'),{index:false,maxAge:0,etag:true,setHeaders:res=>res.setHeader('Cache-Control','no-store, max-age=0')}));
 const authLimit=(max)=>rateLimit({windowMs:15*60*1000,max,standardHeaders:true,legacyHeaders:false,message:{error:'Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin.'}});
 app.use('/api/auth/login',authLimit(10));
 app.use('/api/auth/register',authLimit(10));
@@ -123,6 +135,7 @@ async function initDb(){
  await q(`CREATE TABLE IF NOT EXISTS system_settings(key VARCHAR(80) PRIMARY KEY,value JSONB NOT NULL DEFAULT 'null'::jsonb,updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS announcements(id BIGSERIAL PRIMARY KEY,title VARCHAR(220) NOT NULL,body TEXT NOT NULL,level VARCHAR(30) NOT NULL DEFAULT 'info',is_active BOOLEAN NOT NULL DEFAULT TRUE,publish_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),expires_at TIMESTAMPTZ,created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS knowledge_articles(id BIGSERIAL PRIMARY KEY,slug VARCHAR(180) UNIQUE NOT NULL,title VARCHAR(240) NOT NULL,category VARCHAR(100) NOT NULL DEFAULT 'Genel',summary TEXT DEFAULT '',body TEXT NOT NULL DEFAULT '',is_published BOOLEAN NOT NULL DEFAULT TRUE,created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+ await addCols('knowledge_articles',["source TEXT DEFAULT ''","standard VARCHAR(160) DEFAULT ''","revision_date DATE","related_tools JSONB NOT NULL DEFAULT '[]'::jsonb","related_systems JSONB NOT NULL DEFAULT '[]'::jsonb"]);
  await q(`CREATE TABLE IF NOT EXISTS admin_action_log(id BIGSERIAL PRIMARY KEY,admin_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,action VARCHAR(100) NOT NULL,target_type VARCHAR(100) NOT NULL,target_id BIGINT,details JSONB NOT NULL DEFAULT '{}'::jsonb,ip VARCHAR(80) DEFAULT '',user_agent TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS login_events(id BIGSERIAL PRIMARY KEY,user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,email VARCHAR(200) DEFAULT '',success BOOLEAN NOT NULL DEFAULT FALSE,reason VARCHAR(160) DEFAULT '',ip VARCHAR(80) DEFAULT '',user_agent TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE TABLE IF NOT EXISTS support_tickets(id BIGSERIAL PRIMARY KEY,user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,company_id BIGINT REFERENCES companies(id) ON DELETE SET NULL,subject VARCHAR(220) NOT NULL,message TEXT NOT NULL,status VARCHAR(30) NOT NULL DEFAULT 'open',priority VARCHAR(30) NOT NULL DEFAULT 'Normal',admin_note TEXT DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
@@ -130,6 +143,7 @@ async function initDb(){
  await q(`CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset_tokens(token_hash,expires_at)`);
  await q(`CREATE TABLE IF NOT EXISTS part_movements(id BIGSERIAL PRIMARY KEY,company_id BIGINT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,part_id BIGINT NOT NULL REFERENCES parts(id) ON DELETE CASCADE,user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,movement_type VARCHAR(12) NOT NULL,quantity NUMERIC(12,2) NOT NULL,previous_qty NUMERIC(12,2) NOT NULL,new_qty NUMERIC(12,2) NOT NULL,note VARCHAR(240) DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
  await q(`CREATE INDEX IF NOT EXISTS idx_part_movements_part ON part_movements(company_id,part_id,created_at DESC)`);
+ await runMigrations(pool,path.join(__dirname,'migrations'));
  const defaultSettings={site_name:'Dijital Makinacı',registrations_enabled:true,maintenance_mode:false,support_email:'',allow_file_uploads:true};
  for(const [k,v] of Object.entries(defaultSettings))await q('INSERT INTO system_settings(key,value) VALUES($1,$2::jsonb) ON CONFLICT(key) DO NOTHING',[k,JSON.stringify(v)]);
  settingsCache.at=0;
@@ -186,7 +200,9 @@ app.post('/api/account/password',auth,async(req,res,next)=>{try{
 }catch(e){next(e)}});
 app.get('/api/public/settings',async(req,res,next)=>{try{const s=await getSystemSettings();res.json({site_name:s.site_name||'Dijital Makinacı',registrations_enabled:s.registrations_enabled!==false,maintenance_mode:s.maintenance_mode===true,support_email:s.support_email||''})}catch(e){next(e)}});
 app.get('/api/announcements',auth,async(req,res,next)=>{try{res.json((await q(`SELECT id,title,body,level,publish_at,expires_at FROM announcements WHERE is_active=true AND publish_at<=NOW() AND (expires_at IS NULL OR expires_at>NOW()) ORDER BY id DESC LIMIT 20`)).rows)}catch(e){next(e)}});
-app.get('/api/content/articles',auth,async(req,res,next)=>{try{res.json((await q(`SELECT id,slug,title,category,summary,body,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY category,title`)).rows)}catch(e){next(e)}});
+app.get('/api/public/articles',async(req,res,next)=>{try{const limit=Math.min(50,Math.max(1,num(req.query.limit,20)));res.json((await q(`SELECT slug,title,category,summary,source,standard,revision_date,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC LIMIT $1`,[limit])).rows)}catch(e){next(e)}});
+app.get('/api/public/articles/:slug',async(req,res,next)=>{try{const row=(await q(`SELECT slug,title,category,summary,body,source,standard,revision_date,related_tools,related_systems,updated_at FROM knowledge_articles WHERE slug=$1 AND is_published=true`,[req.params.slug])).rows[0];if(!row)return res.status(404).json({error:'Makale bulunamadı'});res.json(row)}catch(e){next(e)}});
+app.get('/api/content/articles',auth,async(req,res,next)=>{try{res.json((await q(`SELECT id,slug,title,category,summary,body,source,standard,revision_date,related_tools,related_systems,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY category,title`)).rows)}catch(e){next(e)}});
 app.post('/api/support',auth,companyCtx,async(req,res,next)=>{try{const subject=clean(req.body.subject),message=clean(req.body.message),priority=['Düşük','Normal','Yüksek'].includes(req.body.priority)?req.body.priority:'Normal';if(subject.length<3||message.length<5)return res.status(400).json({error:'Konu ve açıklama gerekli'});const r=(await q('INSERT INTO support_tickets(user_id,company_id,subject,message,priority) VALUES($1,$2,$3,$4,$5) RETURNING id,subject,status,priority,created_at',[req.user.id,req.company.id,subject,message,priority])).rows[0];res.status(201).json(r)}catch(e){next(e)}});
 
 // COMPANY / TEAM
@@ -315,9 +331,11 @@ app.patch('/api/admin/settings',auth,siteAdmin,async(req,res,next)=>{try{const a
 app.get('/api/admin/support',auth,siteAdmin,async(req,res,next)=>{try{res.json((await q(`SELECT t.*,u.name user_name,u.email user_email,c.name company_name FROM support_tickets t LEFT JOIN users u ON u.id=t.user_id LEFT JOIN companies c ON c.id=t.company_id ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,t.id DESC LIMIT 400`)).rows)}catch(e){next(e)}});
 app.patch('/api/admin/support/:id',auth,siteAdmin,async(req,res,next)=>{try{const status=['open','in_progress','closed'].includes(req.body.status)?req.body.status:'open',note=clean(req.body.admin_note);const r=(await q('UPDATE support_tickets SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *',[status,note,req.params.id])).rows[0];if(!r)return res.status(404).json({error:'Destek kaydı bulunamadı'});await adminAudit(req,'support_updated','support',r.id,{status});res.json(r)}catch(e){next(e)}});
 
-app.get('/api/health',(req,res)=>res.json({ok:true,version:APP_VERSION,commit:String(process.env.RENDER_GIT_COMMIT||'').slice(0,40)||null,product:`Dijital Makinacı V${APP_VERSION} Pro CMMS`}));
+app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /admin\nSitemap: https://dijitalmakinaci.pro/sitemap.xml\n'));
+app.get('/sitemap.xml',async(req,res,next)=>{try{const base=(clean(process.env.PUBLIC_BASE_URL)||'https://dijitalmakinaci.pro').replace(/\/$/,'');const staticPaths=['/','/hesaplamalar/iso-286-tolerans','/hesaplamalar/kilavuz-on-delik','/hesaplamalar/cnc-kesme','/hesaplamalar/rulman-kod','/hesaplamalar/hidrolik'];const articles=(await q('SELECT slug,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC')).rows;const urls=[...staticPaths.map(urlPath=>({loc:base+urlPath,lastmod:null})),...articles.map(x=>({loc:`${base}/teknik/${encodeURIComponent(x.slug)}`,lastmod:new Date(x.updated_at).toISOString()}))];res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(x=>`<url><loc>${x.loc.replace(/&/g,'&amp;')}</loc>${x.lastmod?`<lastmod>${x.lastmod}</lastmod>`:''}</url>`).join('')}</urlset>`)}catch(e){next(e)}});
+app.get('/api/health',async(req,res)=>{let database='ok';try{await q('SELECT 1')}catch{database='error'}const mail=clean(process.env.RESEND_API_KEY)&&clean(process.env.PASSWORD_RESET_FROM)?'configured':'unconfigured',storage=clean(process.env.STORAGE_BUCKET)&&clean(process.env.STORAGE_ACCESS_KEY_ID)&&clean(process.env.STORAGE_SECRET_ACCESS_KEY)?'configured':'unconfigured';res.status(database==='ok'?200:503).json({ok:database==='ok',version:APP_VERSION,commit:String(process.env.RENDER_GIT_COMMIT||'').slice(0,40)||null,checks:{database,mail,storage},product:`Dijital Makinacı V${APP_VERSION} Pro CMMS`})});
 app.use('/api',(req,res)=>res.status(404).json({error:'API endpoint bulunamadı'}));
-app.get('*',(req,res)=>rootUiFile(res,'v1621-index.html','html'));
+app.get('*',(req,res)=>{res.status(404);return rootUiFile(res,'not-found.html','html')});
 app.use((err,req,res,next)=>{console.error(err);if(err?.code==='LIMIT_FILE_SIZE')return res.status(413).json({error:'Dosya en fazla 5 MB olabilir'});res.status(500).json({error:'Sunucu hatası'})});
 
 initDb().then(()=>{const server=app.listen(PORT,HOST,()=>console.log(`Dijital Makinacı V${APP_VERSION} http://${HOST}:${PORT}`));server.keepAliveTimeout=120000;server.headersTimeout=120000}).catch(e=>{console.error('DB init hatası:',e);process.exit(1)});

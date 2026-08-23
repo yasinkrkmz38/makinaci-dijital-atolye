@@ -1,32 +1,27 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" itemscope itemtype="https://schema.org/WebApplication">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#071015">
-  <title>Dijital Makinacı</title>
-  <style>
-    html,body{height:100%;margin:0;background:#071015;color:#edf6f3;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}
-    body{display:grid;place-items:center;padding:24px}
-    .card{max-width:430px;text-align:center}
-    .gear{font-size:46px;margin-bottom:12px}
-    h1{font-size:21px;margin:0 0 8px}
-    p{color:#8fa3aa;font-size:14px;line-height:1.55}
-    a{color:#65ef9b}
-  </style>
-  <meta http-equiv="refresh" content="0;url=/">
+  <meta name="description" content="Makine bakımı, arıza teşhisi, iş emirleri, stok yönetimi ve ücretsiz teknik hesaplama araçları.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://dijitalmakinaci.pro/">
+  <link rel="manifest" href="/manifest.webmanifest?v=17.2.0">
+  <link rel="icon" href="/icon-192.png">
+  <title>Dijital Makinacı | CMMS, Bakım ve Teknik Hesaplama</title>
+  <link rel="stylesheet" href="/site.css?v=17.2.0">
 </head>
 <body>
-  <div class="card">
-    <div class="gear">⚙</div>
-    <h1>Güncel çalışma alanı açılıyor…</h1>
-    <p>Otomatik yönlendirme olmazsa <a href="/">Dijital Makinacı'yı aç</a>.</p>
-  </div>
-  <script>
-    // server.js wildcard fallback'i bu dosyayı döndürür.
-    // / rotası ise doğrudan güncel v1621-index.html'i servis eder.
-    if (location.pathname !== '/') location.replace('/');
-  </script>
+  <header class="siteHeader"><a class="siteBrand" href="/">⚙ <b>DİJİTAL MAKİNACI</b></a><nav><a href="#hesaplamalar">Hesaplamalar</a><a href="#teknik">Teknik Bilgi</a><a href="#cmms">CMMS</a><a class="siteLogin" href="/app">Uygulamaya gir →</a></nav></header>
+  <main>
+    <section class="siteHero" itemprop="applicationCategory" content="BusinessApplication"><div><span class="siteBadge">BAKIM • ARIZA • ÜRETİM • TEKNİK</span><h1>Makine parkınızı veriye,<br><em>bakımı güvenilirliğe dönüştürün.</em></h1><p>Dijital Makinacı; bakım planı, iş emri, arıza analizi, QR varlık kartı, yedek parça ve teknik hesaplamaları tek çalışma alanında birleştirir.</p><div class="siteActions"><a class="sitePrimary" href="/app">Ücretsiz hesap oluştur</a><a class="siteGhost" href="#hesaplamalar">Hesaplama araçları</a></div></div><div class="siteMetric"><span>CANLI PLATFORM</span><b>V17.2.0</b><small>PostgreSQL • PWA • Rol bazlı erişim</small></div></section>
+    <section class="siteSection" id="cmms"><div class="siteSectionHead"><span>CMMS</span><h2>Sahadan yönetime tek kayıt zinciri</h2></div><div class="featureGrid"><article><b>01</b><h3>Makine ve QR</h3><p>Teknik kart, ölçüm, sağlık skoru ve geçmiş kayıtlar.</p></article><article><b>02</b><h3>Bakım ve İş Emirleri</h3><p>Periyodik planlar, checklist, ekip atama ve timeline.</p></article><article><b>03</b><h3>Stok ve Parça</h3><p>Giriş, çıkış, sayım düzeltmesi ve kullanım geçmişi.</p></article><article><b>04</b><h3>Arıza Analizi</h3><p>Karar ağacı, kök neden, duruş ve tekrarlayan arızalar.</p></article></div></section>
+    <section class="siteSection" id="hesaplamalar"><div class="siteSectionHead"><span>ÜCRETSİZ ARAÇLAR</span><h2>Atölyede gereken hesaplar</h2></div><div class="toolGrid"><a href="/hesaplamalar/iso-286-tolerans"><b>ISO 286</b><span>Tolerans ve geçme</span></a><a href="/hesaplamalar/kilavuz-on-delik"><b>M / UNC / UNF</b><span>Kılavuz ön delik</span></a><a href="/hesaplamalar/cnc-kesme"><b>CNC</b><span>Devir ve ilerleme</span></a><a href="/hesaplamalar/rulman-kod"><b>Rulman</b><span>Kod çözücü</span></a><a href="/hesaplamalar/hidrolik"><b>Hidrolik</b><span>Kuvvet, debi ve güç</span></a><a href="/app"><b>Tüm araçlar</b><span>Uygulamada aç →</span></a></div></section>
+    <section class="siteSection" id="teknik"><div class="siteSectionHead"><span>TEKNİK KÜTÜPHANE</span><h2>Kaynaklı ve revizyon takipli saha bilgisi</h2></div><div class="articleGrid" id="publicArticles"><p class="siteMuted">Makaleler yükleniyor…</p></div></section>
+    <section class="siteCta"><div><span>ATÖLYENİZ HAZIR MI?</span><h2>Bakım geçmişini kaybetmeden başlayın.</h2></div><a class="sitePrimary" href="/app">Dijital çalışma alanını aç →</a></section>
+  </main>
+  <footer><b>⚙ DİJİTAL MAKİNACI</b><span>© 2026 • Makine bakım ve teknik bilgi platformu</span><a href="/app">Giriş / Kayıt</a></footer>
+  <script src="/site.js?v=17.2.0" defer></script>
 </body>
 </html>

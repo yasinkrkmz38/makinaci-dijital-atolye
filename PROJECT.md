@@ -3,7 +3,7 @@
 ## Proje kimliği
 
 - Proje: Dijital Makinacı
-- Tür: Çok firmalı CMMS ve dijital atölye uygulaması
+- Tür: Çok firmalı CMMS ve dijital atölye
 - Canlı adres: https://dijitalmakinaci.pro/
 - GitHub: https://github.com/yasinkrkmz38/makinaci-dijital-atolye
 - Ana dal: `main`
@@ -12,79 +12,60 @@
 - Çalışma zamanı: Node.js 20+
 - Veritabanı: PostgreSQL
 
-## Projenin amacı
+## Ürün sınırları
 
-Sanayi işletmelerinin makine parkı, bakım, arıza, iş emri, teknik ölçüm, servis raporu ve yedek parça süreçlerini tek bir çalışma alanında yönetmesini sağlamak.
+Public site `/` altında, giriş gerektiren CMMS `/app` altında çalışır. Platform yönetimi `/admin`, public hesaplamalar `/hesaplamalar/:slug`, teknik içerikler `/teknik/:slug` altındadır.
 
-## Temel modüller
+Temel alanlar:
 
-- Kullanıcı girişi, kayıt ve şifre yenileme
-- Firma ve ekip yönetimi
-- Rol tabanlı yetkilendirme
-- Makine envanteri ve sağlık skoru
-- Planlı bakım yönetimi
-- Arıza kaydı ve analitiği
-- İş emirleri
-- Depo ve stok hareketleri
-- Makine ölçümleri
-- Dosya ekleri ve QR etiketleri
-- Teknik kütüphane ve hesaplama araçları
-- Platform yönetim paneli
-- PWA ve mobil arayüz
+- Kimlik doğrulama, firma üyeliği, rol ve oturum güvenliği
+- Makine envanteri, arşivleme ve QR kimliği
+- Takvim/çalışma saati bazlı periyodik bakım
+- Checklist, ölçüm, bulgu, fotoğraf ve kullanılan parça
+- İş emri atama, zaman, geçmiş, dosya ve onay
+- Stok hareketi ve izlenebilir parça kullanımı
+- Teknik kütüphane, karar ağacı ve hesaplama araçları
+- Bildirim, e-posta, PWA push ve offline saha desteği
+- Public teknik içerik, SEO ve paylaşılabilir sonuçlar
 
-## Aktif üretim dosyaları
+## Mimari kararlar
 
-- `server.js`: API, veritabanı şeması ve yetkilendirme
-- `start.js`: Güvenli üretim başlangıcı
-- `render-start.js`: Render ağ ayarları
-- `v1621-index.html`: Ana kullanıcı arayüzü
-- `v1621-app.js`: Ana kullanıcı uygulaması
-- `v1621-style.css`: Ana kullanıcı stilleri
-- `v1621-service-worker.js`: PWA önbelleği
-- `admin.html`, `admin.js`, `admin.css`: Yönetim paneli
+- Canonical frontend dosyaları sürüm önekleri taşımaz.
+- Sürümün tek kaynağı `package.json` içindeki `17.2.0` değeridir; runtime varsayılanları bununla eşleşir.
+- PostgreSQL değişiklikleri numaralı migration dosyalarıyla transaction içinde uygulanır.
+- Production sırrı ve servis anahtarları yalnızca ortam değişkenlerinde tutulur.
+- Dosya ekleri için hedef S3 uyumlu object storage'dır; veritabanı yalnızca metadata taşır.
+- Stok miktarı metadata güncellemesinden ayrı, transaction içindeki hareketlerle değişir.
+- Silinmesi geçmişi bozacak operasyonel kayıtlar hard delete yerine arşivlenir.
+- Firma kapsamındaki tüm kayıtlar kullanıcı üyeliğinden türetilen company context ile sorgulanır.
+- Public sayfalar indekslenebilir, `/app` ve `/admin` arama motorlarına kapalıdır.
 
-## Üretim ortamı
+## Güvenlik tabanı
 
-Render üzerinde en az şu ortam değişkenleri bulunmalıdır:
+- Güçlü JWT anahtarı production startup için zorunludur.
+- Helmet/CSP aktiftir. HTML içi olay işleyicileri kademeli kaldırılırken script kaynakları yalnızca aynı origin ile sınırlıdır.
+- Auth endpointleri rate limit ve kalıcı başarısız giriş kayıtlarıyla korunur.
+- E-posta doğrulama, MFA, cihaz oturumları ve parola değişiminde toplu oturum iptali migration modelinin parçasıdır.
+- Yüklemelerde boyut, MIME, dosya imzası ve firma kapsamı kontrol edilir.
 
-- `NODE_ENV=production`
-- `DATABASE_URL`
-- `JWT_SECRET`: En az 32 karakterlik rastgele değer
-- `APP_VERSION=17.2.0`
+## Çalışma ve recovery
 
-İsteğe bağlı değişkenler `.env.example` dosyasında listelenir. Gerçek anahtarlar hiçbir zaman GitHub'a eklenmemelidir.
+- Aktif geliştirme dalı: `codex/platform-expansion`
+- Genişletme öncesi yedek: `backup/pre-platform-expansion-2026-08-23`
+- Önceki stabilizasyon yedeği: `backup/pre-codex-recovery-2026-08-23`
 
-## Doğrulama
+Production veritabanında DROP, recreate veya toplu DELETE yapılmaz. Migration'lar geriye uyumlu ve veri koruyucu hazırlanır. Kısmi veya test edilmemiş çalışma `main` dalına gönderilmez.
 
-Her değişiklikten önce veya sonra şu komut çalıştırılmalıdır:
+## Doğrulama kapıları
 
-```text
-npm test
-```
+1. `npm ci`
+2. `npm test`
+3. Migration'ları geçici PostgreSQL üzerinde çalıştırma
+4. Auth/firma izolasyonu/rol/stok/bakım entegrasyon testleri
+5. Mobil ve masaüstü tarayıcı akışları
+6. `/api/health`
+7. Production `npm run smoke`
 
-Canlı sağlık kontrolü:
+## Güncel çalışma
 
-```text
-GET https://dijitalmakinaci.pro/api/health
-```
-
-## Bilinen teknik borç
-
-- Ana arayüzde çok sayıda HTML içi olay işleyicisi (`onclick`, `oninput`, `onchange`) bulunuyor.
-- Bu nedenle katı Content Security Policy geçici olarak etkinleştirilemiyor; diğer Helmet güvenlik başlıkları aktif.
-- HTML, CSS ve JavaScript dosyaları büyük ve tek parça; modüllere ayrılmalı.
-- Eski sürüm adları taşıyan aktif dosyalar (`v1621-*`) ileride anlamlı adlara taşınmalı.
-- Otomatik API, veritabanı ve tarayıcı uçtan uca testleri genişletilmeli.
-- Eski sürüm/yedek dosyaları doğrulandıktan sonra arşivlenmeli veya kaldırılmalı.
-
-## Çalışma ilkeleri
-
-- Üretim sırları yalnız Render ortam değişkenlerinde tutulur.
-- Değişiklikler önce yerel repo kopyasında yapılır ve `npm test` ile doğrulanır.
-- Test edilen değişiklikler açıklayıcı commit mesajıyla `main` dalına gönderilir.
-- Render dağıtımından sonra canlı sağlık ve gerekli statik dosyalar doğrulanır.
-- Veri kaybına yol açabilecek veritabanı işlemleri ayrıca onaylanır.
-
-## Güncel durum
-
-23 Ağustos 2026 itibarıyla kapsamlı V17.2 stabilizasyonu `codex/stabilize-v17-2` dalında yürütülmektedir. Production routing kanıtlandı; startup, login/PWA, lockfile, soft archive, stok bütünlüğü, firma kapsamı, upload doğrulaması ve test mimarisi production kriterlerine göre ele alınmıştır.
+23 Ağustos 2026 tarihli platform genişletme çalışması; canonical frontend/public site ayrımını, migration temelini, güvenli auth, operasyonel CMMS akışları, bildirim/depolama ve teknik içerik/SEO katmanlarını tek kontrollü dalda tamamlamak üzere yürütülmektedir.

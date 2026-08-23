@@ -1,10 +1,11 @@
 {
-  "id": "/",
+  "id": "/app",
+  "version": "17.2.0",
   "name": "Dijital Makinacı",
   "short_name": "Dijital Makinacı",
   "description": "Makine bakım, arıza, depo-stok, iş emri ve dijital atölye yönetim sistemi.",
   "lang": "tr",
-  "start_url": "/?source=pwa",
+  "start_url": "/app?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
