@@ -33,4 +33,5 @@ if (production) {
 
 process.env.APP_VERSION = process.env.APP_VERSION || '17.2.0';
 
-require('./server.js');
+// Render ağ ayarlarını uygular ve ardından uygulama sunucusunu başlatır.
+require('./render-start.js');

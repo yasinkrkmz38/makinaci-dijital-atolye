@@ -12,6 +12,7 @@ const {Pool}=require('pg');
 
 const app=express();
 const PORT=process.env.PORT||3000;
+const APP_VERSION=process.env.APP_VERSION||'17.2.0';
 const JWT_SECRET=process.env.JWT_SECRET||'DEVELOPMENT_ONLY_CHANGE_ME';
 const DATABASE_URL=process.env.DATABASE_URL;
 if(!DATABASE_URL){console.error('DATABASE_URL tanımlı değil.');process.exit(1)}
@@ -20,7 +21,7 @@ const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:5*1024*1024
 
 app.set('trust proxy',1);
 if(process.env.NODE_ENV==='production'){app.use((req,res,next)=>{const proto=String(req.headers['x-forwarded-proto']||'').split(',')[0].trim();if(req.secure||proto==='https')return next();const host=req.get('host');if(!host)return next();return res.redirect(308,`https://${host}${req.originalUrl}`)});}
-app.use(helmet({contentSecurityPolicy:false}));
+app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],baseUri:["'self'"],fontSrc:["'self'","data:"],formAction:["'self'"],frameAncestors:["'none'"],imgSrc:["'self'","data:","blob:"],objectSrc:["'none'"],scriptSrc:["'self'","'unsafe-inline'"],scriptSrcAttr:["'unsafe-inline'"],styleSrc:["'self'","'unsafe-inline'"],connectSrc:["'self'"]}}}));
 app.use(express.json({limit:'700kb'}));
 app.use(cookieParser());
 app.use((req,res,next)=>{if(req.path==='/manifest.webmanifest')res.type('application/manifest+json');if(req.path==='/service-worker.js')res.setHeader('Service-Worker-Allowed','/');next()});
@@ -40,6 +41,9 @@ app.get('/forgot-password.html',(req,res)=>rootUiFile(res,'v1621-forgot-password
 app.get('/reset-password.html',(req,res)=>rootUiFile(res,'v1621-reset-password.html','html'));
 app.get('/manifest.webmanifest',(req,res)=>rootUiFile(res,'v1621-manifest.webmanifest','application/manifest+json'));
 app.get('/service-worker.js',(req,res)=>{res.setHeader('Service-Worker-Allowed','/');return rootUiFile(res,'v1621-service-worker.js','application/javascript')});
+app.get(['/admin','/admin/','/admin.html'],(req,res)=>rootUiFile(res,'admin.html','html'));
+app.get('/admin.js',(req,res)=>rootUiFile(res,'admin.js','application/javascript'));
+app.get('/admin.css',(req,res)=>rootUiFile(res,'admin.css','text/css'));
 
 app.use(express.static(path.join(__dirname,'public'),{index:false,maxAge:0,etag:true,setHeaders:res=>res.setHeader('Cache-Control','no-store, max-age=0')}));
 app.use('/api/auth',rateLimit({windowMs:15*60*1000,max:60,standardHeaders:true,legacyHeaders:false}));
@@ -297,10 +301,8 @@ app.patch('/api/admin/settings',auth,siteAdmin,async(req,res,next)=>{try{const a
 app.get('/api/admin/support',auth,siteAdmin,async(req,res,next)=>{try{res.json((await q(`SELECT t.*,u.name user_name,u.email user_email,c.name company_name FROM support_tickets t LEFT JOIN users u ON u.id=t.user_id LEFT JOIN companies c ON c.id=t.company_id ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,t.id DESC LIMIT 400`)).rows)}catch(e){next(e)}});
 app.patch('/api/admin/support/:id',auth,siteAdmin,async(req,res,next)=>{try{const status=['open','in_progress','closed'].includes(req.body.status)?req.body.status:'open',note=clean(req.body.admin_note);const r=(await q('UPDATE support_tickets SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *',[status,note,req.params.id])).rows[0];if(!r)return res.status(404).json({error:'Destek kaydı bulunamadı'});await adminAudit(req,'support_updated','support',r.id,{status});res.json(r)}catch(e){next(e)}});
 
-app.get('/api/health',(req,res)=>res.json({ok:true,version:'16.2.1',product:'Dijital Makinacı V16.2.1 Pro CMMS'}));
-app.get('/admin',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
-app.get('/admin/',(req,res)=>res.sendFile(path.join(__dirname,'public','admin.html')));
+app.get('/api/health',(req,res)=>res.json({ok:true,version:APP_VERSION,product:`Dijital Makinacı V${APP_VERSION} Pro CMMS`}));
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.use((err,req,res,next)=>{console.error(err);if(err?.code==='LIMIT_FILE_SIZE')return res.status(413).json({error:'Dosya en fazla 5 MB olabilir'});res.status(500).json({error:'Sunucu hatası'})});
 
-initDb().then(()=>app.listen(PORT,()=>console.log(`Dijital Makinacı V16.2 http://localhost:${PORT}`))).catch(e=>{console.error('DB init hatası:',e);process.exit(1)});
+initDb().then(()=>app.listen(PORT,()=>console.log(`Dijital Makinacı V${APP_VERSION} http://localhost:${PORT}`))).catch(e=>{console.error('DB init hatası:',e);process.exit(1)});
