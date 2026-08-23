@@ -26,6 +26,7 @@ if(pkg.scripts.start!=='node start.js')throw Error('Production start command nod
 if(!start.includes("require('./server.js')"))throw Error('start.js doğrudan server.js başlatmalı');
 if(!server.includes("const HOST='0.0.0.0'"))throw Error('Server 0.0.0.0 üzerinde dinlemeli');
 if(!server.includes('app.listen(PORT,HOST'))throw Error('Server HOST ve PORT ile başlamalı');
+if(!server.includes('process.env.RENDER_GIT_COMMIT'))throw Error('Health endpointi production commit bilgisini yayınlamalı');
 if(!server.includes(`'${pkg.version}'`))throw Error('Server varsayılan sürümü package.json ile farklı');
 if(lock.version!==pkg.version||lock.packages?.['']?.version!==pkg.version)throw Error('package-lock sürümü package.json ile farklı');
 if(lock.packages?.['']?.dependencies?.['better-sqlite3'])throw Error('SQLite dependency production lockfile içinde bulunamaz');

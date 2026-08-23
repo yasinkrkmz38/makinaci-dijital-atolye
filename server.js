@@ -315,7 +315,7 @@ app.patch('/api/admin/settings',auth,siteAdmin,async(req,res,next)=>{try{const a
 app.get('/api/admin/support',auth,siteAdmin,async(req,res,next)=>{try{res.json((await q(`SELECT t.*,u.name user_name,u.email user_email,c.name company_name FROM support_tickets t LEFT JOIN users u ON u.id=t.user_id LEFT JOIN companies c ON c.id=t.company_id ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,t.id DESC LIMIT 400`)).rows)}catch(e){next(e)}});
 app.patch('/api/admin/support/:id',auth,siteAdmin,async(req,res,next)=>{try{const status=['open','in_progress','closed'].includes(req.body.status)?req.body.status:'open',note=clean(req.body.admin_note);const r=(await q('UPDATE support_tickets SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *',[status,note,req.params.id])).rows[0];if(!r)return res.status(404).json({error:'Destek kaydı bulunamadı'});await adminAudit(req,'support_updated','support',r.id,{status});res.json(r)}catch(e){next(e)}});
 
-app.get('/api/health',(req,res)=>res.json({ok:true,version:APP_VERSION,product:`Dijital Makinacı V${APP_VERSION} Pro CMMS`}));
+app.get('/api/health',(req,res)=>res.json({ok:true,version:APP_VERSION,commit:String(process.env.RENDER_GIT_COMMIT||'').slice(0,40)||null,product:`Dijital Makinacı V${APP_VERSION} Pro CMMS`}));
 app.use('/api',(req,res)=>res.status(404).json({error:'API endpoint bulunamadı'}));
 app.get('*',(req,res)=>rootUiFile(res,'v1621-index.html','html'));
 app.use((err,req,res,next)=>{console.error(err);if(err?.code==='LIMIT_FILE_SIZE')return res.status(413).json({error:'Dosya en fazla 5 MB olabilir'});res.status(500).json({error:'Sunucu hatası'})});

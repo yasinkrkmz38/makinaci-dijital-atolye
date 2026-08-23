@@ -2,6 +2,7 @@
 
 const base=(process.env.SMOKE_BASE_URL||'https://dijitalmakinaci.pro').replace(/\/$/,'');
 const expectedVersion=require('../package.json').version;
+const expectedCommit=String(process.env.SMOKE_EXPECTED_COMMIT||'').trim();
 
 async function request(path,expected=200,options={}){
   const response=await fetch(base+path,{redirect:'manual',...options});
@@ -12,6 +13,7 @@ async function request(path,expected=200,options={}){
 (async()=>{
   const health=await (await request('/api/health')).json();
   if(!health.ok||health.version!==expectedVersion)throw Error(`Health sürümü hatalı: ${JSON.stringify(health)}`);
+  if(expectedCommit&&health.commit!==expectedCommit)throw Error(`Health commit'i hatalı: ${health.commit||'yok'}, beklenen ${expectedCommit}`);
   const html=await (await request('/')).text();
   if(!html.includes(`name="app-version" content="${expectedVersion}"`)&&!html.includes(`content="${expectedVersion}" name="app-version"`))throw Error('Production HTML app-version etiketi hatalı');
   const js=await request('/v1621-app.js');

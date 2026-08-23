@@ -9,6 +9,7 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 - Stabilizasyon öncesi `backup/pre-codex-recovery-2026-08-23` dalı oluşturuldu.
 - Production routing ve Git geçmişi `7c01605` baseline'ına kadar incelendi.
 - Server doğrudan `0.0.0.0:$PORT` dinleyecek şekilde sadeleştirildi.
+- Health endpointine canlı Render commit SHA bilgisi eklendi.
 - Service worker JS/CSS rewrite, runtime injection ve login hack'lerinden arındırıldı.
 - Eski service worker devreden çıktığında açık sekmenin yeni sürüme otomatik geçmesi sağlandı.
 - Mobil CSS açık production route ve HTML referansı ile korundu.
