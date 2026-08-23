@@ -3,7 +3,7 @@
   "version": "17.2.0",
   "private": true,
   "scripts": {
-    "start": "node start.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=20"
