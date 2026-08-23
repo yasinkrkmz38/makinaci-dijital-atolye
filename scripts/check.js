@@ -47,6 +47,7 @@ if(!worker.includes(`APP_VERSION='${pkg.version}'`))throw Error('Service worker 
 if(/patchLoginFlow|mergedApp|mergedStyle|string replace|v172-integrity|login-hardfix|auth-controls-p6/i.test(worker))throw Error('Service worker uygulama kaynağını değiştiremez');
 if(/respondWith[\s\S]{0,500}\/api\//.test(worker))throw Error('Service worker API yanıtlarını intercept edemez');
 if(!worker.includes("url.pathname.startsWith('/api/')")||!worker.includes('return;'))throw Error('Service worker API bypass eksik');
+if(server.indexOf("app.use('/api'")<0||server.indexOf("app.use('/api'")>server.indexOf("app.get('*'"))throw Error('API 404 JSON middleware catch-all route öncesinde olmalı');
 if(/submitAuth[\s\S]{0,300}playLoginTransition/.test(client))throw Error('Login blocking transition kullanamaz');
 
 for(const invariant of ['archived_at TIMESTAMPTZ','/api/machines/:id/restore','/api/maintenance/:id/restore','SELECT * FROM parts WHERE id=$1 AND company_id=$2 FOR UPDATE']){
