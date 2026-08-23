@@ -13,6 +13,8 @@ const {runMigrations}=require('./db/migrate');
 const storage=require('./storage');
 const webpush=require('web-push');
 const {stockQuantityAfter,sessionStateValid}=require('./domain');
+const {REVISION_DATE,calculatorSeo,seoArticles,articleBodyText,articleSummary}=require('./seo-content');
+const {renderCalculatorPage,renderArticlePage,renderLibraryPage,renderCalculatorIndexPage}=require('./seo-render');
 
 const app=express();
 const PORT=Number(process.env.PORT)||10000;
@@ -39,13 +41,24 @@ app.use(cookieParser());
 app.use((req,res,next)=>{if(req.path==='/manifest.webmanifest')res.type('application/manifest+json');if(req.path==='/service-worker.js')res.setHeader('Service-Worker-Allowed','/');next()});
 // Tek production frontend kaynağı repo root'taki canonical dosyalardır.
 function rootUiFile(res,file,type){
-  res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');
-  res.setHeader('Pragma','no-cache');
-  res.setHeader('Expires','0');
+  if(res.locals.publicCache){res.setHeader('Cache-Control','public, max-age=300, s-maxage=21600, stale-while-revalidate=86400')}
+  else{res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, max-age=0');res.setHeader('Pragma','no-cache');res.setHeader('Expires','0')}
   if(type)res.type(type);
   return res.sendFile(path.join(__dirname,file));
 }
-app.get(['/', '/index.html'],(req,res)=>rootUiFile(res,'index.html','html'));
+function publicBaseUrl(){return String(process.env.PUBLIC_BASE_URL||'https://dijitalmakinaci.pro').trim().replace(/\/$/,'')}
+function seoNonce(){return crypto.randomBytes(18).toString('base64')}
+function sendSeoPage(res,html,nonce,status=200){
+  res.status(status).type('html');
+  res.setHeader('Cache-Control','public, max-age=300, s-maxage=21600, stale-while-revalidate=86400');
+  res.setHeader('Content-Security-Policy',`default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'nonce-${nonce}'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests`);
+  return res.send(html);
+}
+function mergedPublicArticles(databaseRows=[],limit=50){
+  const combined=[...seoArticles.map(articleSummary),...databaseRows],seen=new Set();
+  return combined.filter(article=>article?.slug&&!seen.has(article.slug)&&seen.add(article.slug)).slice(0,limit);
+}
+app.get(['/', '/index.html'],(req,res)=>{res.locals.publicCache=true;return rootUiFile(res,'index.html','html')});
 app.get(['/app','/app/','/app.html'],(req,res)=>rootUiFile(res,'app.html','html'));
 app.get('/app/*',(req,res)=>rootUiFile(res,'app.html','html'));
 app.get('/app.js',(req,res)=>rootUiFile(res,'app.js','application/javascript'));
@@ -63,8 +76,10 @@ app.get('/reports/:type/:id',(req,res)=>rootUiFile(res,'report.html','html'));
 app.get('/forgot-password.html',(req,res)=>rootUiFile(res,'forgot-password.html','html'));
 app.get('/reset-password.html',(req,res)=>rootUiFile(res,'reset-password.html','html'));
 app.get('/verify-email.html',(req,res)=>rootUiFile(res,'verify-email.html','html'));
-app.get('/hesaplamalar/:slug',(req,res)=>rootUiFile(res,'calculator.html','html'));
-app.get('/teknik/:slug',(req,res)=>rootUiFile(res,'article.html','html'));
+app.get(['/hesaplamalar','/hesaplamalar/'],(req,res)=>{const nonce=seoNonce();return sendSeoPage(res,renderCalculatorIndexPage({baseUrl:publicBaseUrl(),nonce}),nonce)});
+app.get('/hesaplamalar/:slug',(req,res)=>{const config=calculatorSeo[req.params.slug];if(!config){res.status(404);return rootUiFile(res,'not-found.html','html')}const nonce=seoNonce();return sendSeoPage(res,renderCalculatorPage(config,{baseUrl:publicBaseUrl(),nonce}),nonce)});
+app.get(['/teknik','/teknik/'],async(req,res)=>{let rows=[];try{rows=(await q(`SELECT slug,title,category,summary,source,standard,revision_date,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC LIMIT 50`)).rows}catch(error){console.warn('Public teknik kütüphane DB içeriği geçici olarak alınamadı:',error.message)}const articles=mergedPublicArticles(rows,50),nonce=seoNonce();return sendSeoPage(res,renderLibraryPage(articles,{baseUrl:publicBaseUrl(),nonce}),nonce)});
+app.get('/teknik/:slug',async(req,res,next)=>{try{const staticArticle=seoArticles.find(article=>article.slug===req.params.slug),article=staticArticle||(await q(`SELECT slug,title,category,summary,body,source,standard,revision_date,related_tools,related_systems,updated_at FROM knowledge_articles WHERE slug=$1 AND is_published=true`,[req.params.slug])).rows[0];if(!article){res.status(404);return rootUiFile(res,'not-found.html','html')}const nonce=seoNonce();return sendSeoPage(res,renderArticlePage(article,{baseUrl:publicBaseUrl(),nonce}),nonce)}catch(e){next(e)}});
 app.get('/manifest.webmanifest',(req,res)=>rootUiFile(res,'manifest.webmanifest','application/manifest+json'));
 app.get('/service-worker.js',(req,res)=>{res.setHeader('Service-Worker-Allowed','/');return rootUiFile(res,'service-worker.js','application/javascript')});
 app.get('/icon-192.png',(req,res)=>rootUiFile(res,'icon-192.png','image/png'));
@@ -264,8 +279,8 @@ app.post('/api/account/mfa/recovery-codes',auth,async(req,res,next)=>{try{const 
 app.post('/api/account/mfa/disable',auth,async(req,res,next)=>{try{if(req.user.platform_admin&&ADMIN_MFA_REQUIRED)return res.status(403).json({error:'Platform yöneticilerinde MFA zorunludur'});const password=String(req.body.current_password||''),u=(await q('SELECT * FROM users WHERE id=$1',[req.user.id])).rows[0];if(!u?.mfa_enabled)return res.status(400).json({error:'MFA etkin değil'});if(!(await bcrypt.compare(password,u.password_hash)))return res.status(401).json({error:'Mevcut şifre yanlış'});let valid=false;try{valid=verifyTotp(decryptMfaSecret(u.mfa_secret_cipher),req.body.code)}catch{}if(!valid)return res.status(400).json({error:'Doğrulama kodu hatalı'});await q("UPDATE users SET mfa_enabled=false,mfa_secret_cipher=NULL,mfa_recovery_codes='[]'::jsonb,session_version=session_version+1 WHERE id=$1",[u.id]);await q('UPDATE auth_sessions SET revoked_at=NOW() WHERE user_id=$1 AND revoked_at IS NULL',[u.id]);clearCookie(res);res.json({ok:true,relogin:true})}catch(e){next(e)}});
 app.get('/api/public/settings',async(req,res,next)=>{try{const s=await getSystemSettings();res.json({site_name:s.site_name||'Dijital Makinacı',registrations_enabled:s.registrations_enabled!==false,maintenance_mode:s.maintenance_mode===true,support_email:s.support_email||''})}catch(e){next(e)}});
 app.get('/api/announcements',auth,async(req,res,next)=>{try{res.json((await q(`SELECT id,title,body,level,publish_at,expires_at FROM announcements WHERE is_active=true AND publish_at<=NOW() AND (expires_at IS NULL OR expires_at>NOW()) ORDER BY id DESC LIMIT 20`)).rows)}catch(e){next(e)}});
-app.get('/api/public/articles',async(req,res,next)=>{try{const limit=Math.min(50,Math.max(1,num(req.query.limit,20)));res.json((await q(`SELECT slug,title,category,summary,source,standard,revision_date,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC LIMIT $1`,[limit])).rows)}catch(e){next(e)}});
-app.get('/api/public/articles/:slug',async(req,res,next)=>{try{const row=(await q(`SELECT slug,title,category,summary,body,source,standard,revision_date,related_tools,related_systems,updated_at FROM knowledge_articles WHERE slug=$1 AND is_published=true`,[req.params.slug])).rows[0];if(!row)return res.status(404).json({error:'Makale bulunamadı'});res.json(row)}catch(e){next(e)}});
+app.get('/api/public/articles',async(req,res)=>{const limit=Math.min(50,Math.max(1,num(req.query.limit,20)));let rows=[];try{rows=(await q(`SELECT slug,title,category,summary,source,standard,revision_date,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC LIMIT 50`)).rows}catch(error){console.warn('Public makale API DB içeriği geçici olarak alınamadı:',error.message)}res.setHeader('Cache-Control','public, max-age=300, s-maxage=21600');res.json(mergedPublicArticles(rows,limit))});
+app.get('/api/public/articles/:slug',async(req,res,next)=>{try{const staticArticle=seoArticles.find(article=>article.slug===req.params.slug);if(staticArticle){res.setHeader('Cache-Control','public, max-age=300, s-maxage=21600');return res.json({...articleSummary(staticArticle),body:articleBodyText(staticArticle),related_articles:staticArticle.relatedArticles})}const row=(await q(`SELECT slug,title,category,summary,body,source,standard,revision_date,related_tools,related_systems,updated_at FROM knowledge_articles WHERE slug=$1 AND is_published=true`,[req.params.slug])).rows[0];if(!row)return res.status(404).json({error:'Makale bulunamadı'});res.setHeader('Cache-Control','public, max-age=300, s-maxage=21600');res.json(row)}catch(e){next(e)}});
 app.get('/api/content/articles',auth,async(req,res,next)=>{try{res.json((await q(`SELECT id,slug,title,category,summary,body,source,standard,revision_date,related_tools,related_systems,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY category,title`)).rows)}catch(e){next(e)}});
 app.get('/api/diagnosis/systems',auth,async(req,res,next)=>{try{const labels={motor:'Motor',bearing:'Rulman',hydraulic:'Hidrolik',pneumatic:'Pnömatik',cnc:'CNC / Servo',electrical:'Elektrik',gearbox:'Redüktör / Aktarma'};const rows=(await q(`SELECT system_key,COUNT(*)::int node_count FROM diagnosis_trees WHERE is_active=true GROUP BY system_key ORDER BY system_key`)).rows;res.json(rows.map(row=>({...row,label:labels[row.system_key]||row.system_key}))) }catch(e){next(e)}});
 app.get('/api/diagnosis/trees/:system',auth,async(req,res,next)=>{try{const system=clean(req.params.system).slice(0,80);const rows=(await q(`SELECT node_key,parent_key,question,yes_next,no_next,result_text,checks FROM diagnosis_trees WHERE system_key=$1 AND is_active=true ORDER BY id`,[system])).rows;if(!rows.length)return res.status(404).json({error:'Teşhis ağacı bulunamadı'});res.json({system,root:rows.find(row=>row.node_key==='root')?.node_key||rows[0].node_key,nodes:rows})}catch(e){next(e)}});
@@ -442,8 +457,22 @@ app.patch('/api/admin/settings',auth,siteAdmin,async(req,res,next)=>{try{const a
 app.get('/api/admin/support',auth,siteAdmin,async(req,res,next)=>{try{res.json((await q(`SELECT t.*,u.name user_name,u.email user_email,c.name company_name FROM support_tickets t LEFT JOIN users u ON u.id=t.user_id LEFT JOIN companies c ON c.id=t.company_id ORDER BY CASE t.status WHEN 'open' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,t.id DESC LIMIT 400`)).rows)}catch(e){next(e)}});
 app.patch('/api/admin/support/:id',auth,siteAdmin,async(req,res,next)=>{try{const status=['open','in_progress','closed'].includes(req.body.status)?req.body.status:'open',note=clean(req.body.admin_note);const r=(await q('UPDATE support_tickets SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *',[status,note,req.params.id])).rows[0];if(!r)return res.status(404).json({error:'Destek kaydı bulunamadı'});await adminAudit(req,'support_updated','support',r.id,{status});res.json(r)}catch(e){next(e)}});
 
-app.get('/robots.txt',(req,res)=>res.type('text/plain').send('User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /admin\nSitemap: https://dijitalmakinaci.pro/sitemap.xml\n'));
-app.get('/sitemap.xml',async(req,res,next)=>{try{const base=(clean(process.env.PUBLIC_BASE_URL)||'https://dijitalmakinaci.pro').replace(/\/$/,'');const staticPaths=['/','/hesaplamalar/iso-286-tolerans','/hesaplamalar/kilavuz-on-delik','/hesaplamalar/cnc-kesme','/hesaplamalar/rulman-kod','/hesaplamalar/hidrolik'];const articles=(await q('SELECT slug,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC')).rows;const urls=[...staticPaths.map(urlPath=>({loc:base+urlPath,lastmod:null})),...articles.map(x=>({loc:`${base}/teknik/${encodeURIComponent(x.slug)}`,lastmod:new Date(x.updated_at).toISOString()}))];res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(x=>`<url><loc>${x.loc.replace(/&/g,'&amp;')}</loc>${x.lastmod?`<lastmod>${x.lastmod}</lastmod>`:''}</url>`).join('')}</urlset>`)}catch(e){next(e)}});
+app.get('/robots.txt',(req,res)=>{res.setHeader('Cache-Control','public, max-age=3600, s-maxage=86400');return res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /app\nDisallow: /admin\nDisallow: /api/\nSitemap: ${publicBaseUrl()}/sitemap.xml\n`)});
+app.get('/sitemap.xml',async(req,res)=>{
+  const base=publicBaseUrl(),staticUrls=[
+    {path:'/',lastmod:REVISION_DATE,priority:'1.0',changefreq:'weekly'},
+    {path:'/hesaplamalar',lastmod:REVISION_DATE,priority:'0.9',changefreq:'monthly'},
+    {path:'/teknik',lastmod:REVISION_DATE,priority:'0.9',changefreq:'weekly'},
+    ...Object.values(calculatorSeo).map(tool=>({path:`/hesaplamalar/${encodeURIComponent(tool.slug)}`,lastmod:REVISION_DATE,priority:'0.8',changefreq:'monthly'})),
+    ...seoArticles.map(article=>({path:`/teknik/${encodeURIComponent(article.slug)}`,lastmod:article.revisionDate,priority:'0.8',changefreq:'monthly'}))
+  ];
+  let databaseArticles=[];
+  try{databaseArticles=(await q('SELECT slug,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC')).rows.map(article=>({path:`/teknik/${encodeURIComponent(article.slug)}`,lastmod:new Date(article.updated_at).toISOString().slice(0,10),priority:'0.7',changefreq:'monthly'}))}
+  catch(error){console.warn('Sitemap DB içeriği geçici olarak alınamadı:',error.message)}
+  const seen=new Set(),urls=[...staticUrls,...databaseArticles].filter(item=>!seen.has(item.path)&&seen.add(item.path));
+  res.setHeader('Cache-Control','public, max-age=3600, s-maxage=86400');
+  return res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(item=>`  <url><loc>${(base+item.path).replace(/&/g,'&amp;')}</loc><lastmod>${item.lastmod}</lastmod><changefreq>${item.changefreq}</changefreq><priority>${item.priority}</priority></url>`).join('\n')}\n</urlset>`);
+});
 app.get('/api/health',async(req,res)=>{let database='ok',migration=null;try{await q('SELECT 1');migration=(await q('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1')).rows[0]?.name||null}catch{database='error'}const storageHealth=await storage.health(),mail=mailConfigured()?'configured':'unconfigured',storageStatus=storageHealth.status,push=VAPID_PUBLIC_KEY&&VAPID_PRIVATE_KEY?'configured':'unconfigured';res.status(database==='ok'?200:503).json({ok:database==='ok',version:APP_VERSION,commit:String(process.env.RENDER_GIT_COMMIT||'').slice(0,40)||null,checks:{database,mail,storage:storageStatus,push,migration},product:`Dijital Makinacı V${APP_VERSION} Pro CMMS`})});
 app.use('/api',(req,res)=>res.status(404).json({error:'API endpoint bulunamadı'}));
 app.get('*',(req,res)=>{res.status(404);return rootUiFile(res,'not-found.html','html')});

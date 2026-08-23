@@ -4,6 +4,17 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-23
 
+### Organik trafik ve teknik SEO altyapısı
+
+- Beş public hesaplama sayfası istemci tarafı generic metadata yerine sunucu tarafı özgün title, description, self-canonical ve sosyal paylaşım etiketleriyle yayınlanır hâle getirildi.
+- Hesaplama sayfalarına kapsamlı açıklamalar, standart referansları, SSS, ilgili rehberler ve `WebApplication` / `FAQPage` / `BreadcrumbList` JSON-LD eklendi.
+- Hidrolik, CNC, rulman, tolerans, elektrik motoru, pnömatik, kestirimci bakım, stok ve bakım yönetimini kapsayan 18 kaynak ve revizyon bilgili teknik rehber eklendi.
+- Teknik rehberler `TechArticle`, public dizinler `CollectionPage` ve `ItemList` şemasıyla sunucu tarafında render edilmeye başlandı.
+- `/teknik` ve `/hesaplamalar` dizinleri, ana sayfada taranabilir iç bağlantılar ve statik+veritabanı içeriğini birleştiren public makale API'si eklendi.
+- Sitemap 26'dan fazla public URL, lastmod, changefreq ve priority bilgisiyle genişletildi; robots çıktısı ortamın public base URL'sine bağlandı.
+- JSON-LD için istek başına nonce kullanan sıkı CSP korundu; dinamik makalelerde HTML/JSON kaçışları eklendi.
+- SEO kalite kapısı ve production smoke testi; içerik uzunluğu, metadata, canonical, schema, public dizinler ve sitemap kapsamını denetleyecek şekilde genişletildi.
+
 ### V17.2 platform genişletmesi
 
 - Public site `/`, CMMS `/app`, yönetim `/admin`, hesaplama ve teknik makale URL'leri ayrıldı; sitemap, robots, canonical/meta ve schema altyapısı eklendi.

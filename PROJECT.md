@@ -39,6 +39,8 @@ Temel alanlar:
 - Silinmesi geçmişi bozacak operasyonel kayıtlar hard delete yerine arşivlenir.
 - Firma kapsamındaki tüm kayıtlar kullanıcı üyeliğinden türetilen company context ile sorgulanır.
 - Public sayfalar indekslenebilir, `/app` ve `/admin` arama motorlarına kapalıdır.
+- Hesaplama ve teknik makale sayfaları ilk HTML yanıtında özgün başlık, açıklama, self-canonical, breadcrumb, iç bağlantı ve JSON-LD sunar; kritik SEO içeriği istemci JavaScript'ine bağlı değildir.
+- Sürümlü `seo-content.js` public teknik kütüphanenin asgari içerik tabanıdır; veritabanında yayınlanan makaleler bununla slug bazında birleştirilir.
 
 ## Güvenlik tabanı
 
@@ -68,4 +70,4 @@ Production veritabanında DROP, recreate veya toplu DELETE yapılmaz. Migration'
 
 ## Güncel çalışma
 
-23 Ağustos 2026 platform genişletmesi `codex/platform-expansion` dalında tamamlanmıştır. Canonical frontend/public site ayrımı, güvenli auth, periyodik bakım/checklist, stok bağlantılı iş emirleri, ekip davetleri, object storage, bildirim/PWA/offline saha, karar ağacı, public teknik araçlar ve SEO katmanı birlikte test edilmektedir. Ana dala geçiş yalnızca migration denemesi, tarayıcı doğrulaması ve production smoke kapıları tamamlandıktan sonra yapılır.
+23 Ağustos 2026 platform genişletmesi `codex/platform-expansion` dalında tamamlanmıştır. Canonical frontend/public site ayrımı, güvenli auth, periyodik bakım/checklist, stok bağlantılı iş emirleri, ekip davetleri, object storage, bildirim/PWA/offline saha, karar ağacı ve public teknik araçlar birlikte test edilmektedir. Organik trafik altyapısı için 5 sunucu tarafı hesaplama sayfası, 18 kaynak/revizyon bilgili rehber, iki public içerik dizini, yapılandırılmış veri ve 26+ URL'lik dinamik sitemap doğrulama kapısına eklenmiştir. Ana dala geçiş yalnızca migration denemesi, tarayıcı doğrulaması ve production smoke kapıları tamamlandıktan sonra yapılır.

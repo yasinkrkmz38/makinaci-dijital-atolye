@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..');
 const version=require(path.join(root,'package.json')).version;
 const checkOnly=process.argv.includes('--check');
 const files=[
-  '.env.example','admin.css','admin.html','app.html','article.html','calculator.html',
+  '.env.example','admin.css','admin.html','app.html',
   'forgot-password.html','index.html','manifest.webmanifest','not-found.html','pwa.js',
   'report.html','report.js','reset-password.html','service-worker.js','style.css','verify-email.html',
   'README.md','PROJECT.md'

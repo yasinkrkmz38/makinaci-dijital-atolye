@@ -47,6 +47,7 @@ Gerçek anahtarları repoya eklemeyin.
 ## Canonical yapı
 
 - `index.html`, `site.js`, `site.css`: indekslenebilir public site
+- `seo-content.js`, `seo-render.js`: sürümlü teknik içerik ve sunucu tarafı SEO sayfa üretimi
 - `app.html`, `app.js`, `style.css`, `mobile.css`: CMMS uygulaması
 - `admin.html`, `admin.js`, `admin.css`: platform yönetimi
 - `service-worker.js`, `manifest.webmanifest`, `pwa.js`: PWA katmanı
@@ -64,8 +65,8 @@ Eski `v1621-*`, `appstore-v17.css`, `public/` ve `v71/` kopyaları kaldırılmı
 | --- | --- | --- |
 | `/` | `index.html` | Public site |
 | `/app` | `app.html` | CMMS uygulaması |
-| `/hesaplamalar/:slug` | `calculator.html` | İndekslenebilir hesaplama sayfaları |
-| `/teknik/:slug` | `article.html` | İndekslenebilir teknik makaleler |
+| `/hesaplamalar`, `/hesaplamalar/:slug` | `seo-render.js` | SSR hesaplama dizini ve özgün araç sayfaları |
+| `/teknik`, `/teknik/:slug` | `seo-render.js` | SSR teknik kütüphane ve özgün makaleler |
 | `/admin` | `admin.html` | Platform yönetimi |
 | `/api/health` | JSON | DB, e-posta, object storage, push ve migration durumu |
 | `/sitemap.xml`, `/robots.txt` | Dinamik/statik | Arama motoru keşfi |

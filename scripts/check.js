@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const pkg=JSON.parse(read('package.json'));
 const lock=JSON.parse(read('package-lock.json'));
-const jsFiles=['server.js','start.js','render-start.js','domain.js','app.js','admin.js','service-worker.js','site.js','auth-pages.js','pwa.js','actions.js','offline.js','report.js','storage.js','db/migrate.js','scripts/migrate-attachments-to-storage.js','scripts/sync-version.js','scripts/operations-check.js','scripts/preview.js','tests/domain.test.js'];
+const jsFiles=['server.js','start.js','render-start.js','domain.js','seo-content.js','seo-render.js','app.js','admin.js','service-worker.js','site.js','auth-pages.js','pwa.js','actions.js','offline.js','report.js','storage.js','db/migrate.js','scripts/migrate-attachments-to-storage.js','scripts/sync-version.js','scripts/operations-check.js','scripts/seo-check.js','scripts/preview.js','tests/domain.test.js'];
 const requiredFiles=['index.html','app.html','style.css','mobile.css','site.css','manifest.webmanifest','admin.html','admin.css','.env.example','PROJECT.md','CHANGELOG.md','report.html','report.css','migrations/001_platform_expansion.sql','migrations/002_operations.sql','migrations/003_diagnosis_content.sql'];
 
 for(const file of [...jsFiles,...requiredFiles]){
