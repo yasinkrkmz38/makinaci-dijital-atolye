@@ -23,7 +23,7 @@ requireAll(server,[
   "app.post('/api/part-usages/:parentType/:id'","SELECT * FROM parts WHERE id=$1 AND company_id=$2 FOR UPDATE",
   "app.post('/api/work-orders/:id/timer/start'","app.post('/api/work-orders/:id/timer/stop'",
   "app.post('/api/reports/:parentType/:id/signatures'","app.post('/api/push/subscribe'",
-  "app.get('/api/health'","storage.health()","mailConfigured()"
+  "app.get('/api/health'","storage.health()","mailConfigured()","push=VAPID_PUBLIC_KEY&&VAPID_PRIVATE_KEY"
 ],'Operasyon backend değişmezi eksik');
 
 requireAll(migration1,['maintenance_templates','checklist_items','part_usages','work_order_events','work_time_entries','company_invitations','push_subscriptions','diagnosis_trees'],'Ana migration eksik');

@@ -67,7 +67,7 @@ Eski `v1621-*`, `appstore-v17.css`, `public/` ve `v71/` kopyaları kaldırılmı
 | `/hesaplamalar/:slug` | `calculator.html` | İndekslenebilir hesaplama sayfaları |
 | `/teknik/:slug` | `article.html` | İndekslenebilir teknik makaleler |
 | `/admin` | `admin.html` | Platform yönetimi |
-| `/api/health` | JSON | DB, e-posta ve depolama durumu |
+| `/api/health` | JSON | DB, e-posta, object storage, push ve migration durumu |
 | `/sitemap.xml`, `/robots.txt` | Dinamik/statik | Arama motoru keşfi |
 
 ## Veri güvenliği
