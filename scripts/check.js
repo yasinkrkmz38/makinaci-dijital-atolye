@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const pkg=JSON.parse(read('package.json'));
 const lock=JSON.parse(read('package-lock.json'));
-const jsFiles=['server.js','start.js','render-start.js','app.js','admin.js','service-worker.js','site.js','auth-pages.js','pwa.js','db/migrate.js'];
+const jsFiles=['server.js','start.js','render-start.js','app.js','admin.js','service-worker.js','site.js','auth-pages.js','pwa.js','actions.js','db/migrate.js'];
 const requiredFiles=['index.html','app.html','style.css','mobile.css','site.css','manifest.webmanifest','admin.html','admin.css','.env.example','PROJECT.md','CHANGELOG.md','migrations/001_platform_expansion.sql'];
 
 for(const file of [...jsFiles,...requiredFiles]){
@@ -52,6 +52,7 @@ if(/patchLoginFlow|mergedApp|mergedStyle|string replace|v172-integrity|login-har
 if(!worker.includes("url.pathname.startsWith('/api/')")||!worker.includes('return;'))throw Error('Service worker API bypass eksik');
 if(server.indexOf("app.use('/api'")<0||server.indexOf("app.use('/api'")>server.indexOf("app.get('*'"))throw Error('API 404 JSON middleware catch-all route öncesinde olmalı');
 if(!server.includes('contentSecurityPolicy:{directives:'))throw Error('Content Security Policy etkin değil');
+if(!server.includes(`scriptSrcAttr:["'none'"]`))throw Error('CSP inline script olaylarını engellemeli');
 if(!server.includes('runMigrations(pool'))throw Error('Migration çalıştırıcısı startup akışında değil');
 for(const table of ['auth_sessions','email_verification_tokens','company_invitations','maintenance_templates','checklist_items','part_usages','work_order_events','user_notifications']){
   if(!migration.includes(table))throw Error(`Platform migration tablosu eksik: ${table}`);

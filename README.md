@@ -27,14 +27,16 @@ Kalıcı proje bağlamı için `PROJECT.md`, sürüm geçmişi için `CHANGELOG.
 - `PORT`: HTTP portu; varsayılan `10000`
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`: İlk platform yöneticisi
 - `PUBLIC_BASE_URL`: Public site adresi
-- `RESEND_API_KEY`, `PASSWORD_RESET_FROM`: İşlemsel e-posta ayarları
+- `RESEND_API_KEY`, `MAIL_FROM`: E-posta doğrulama ve şifre sıfırlama gönderimi
+- `REQUIRE_EMAIL_VERIFICATION`: Yeni hesaplarda doğrulamayı zorunlu tutar; varsayılan `true`
+- `ADMIN_MFA_REQUIRED`: Platform yöneticilerinde MFA'yı zorunlu tutar; varsayılan `true`
 - `APP_VERSION`: Varsayılan `17.2.0`
 
 Gerçek anahtarları repoya eklemeyin.
 
 ## Kontroller
 
-- `npm test`: sözdizimi, canonical dosya, CSP, migration, kritik stok/arşiv ve responsive UI kontrolleri
+- `npm test`: sözdizimi, canonical dosya, CSP, auth güvenliği, migration, kritik stok/arşiv ve responsive UI kontrolleri
 - `npm run smoke`: dağıtılmış sitenin health, public site, uygulama, PWA ve auth smoke kontrolü
 
 ## Canonical yapı

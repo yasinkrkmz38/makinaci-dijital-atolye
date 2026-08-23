@@ -1340,3 +1340,14 @@ body{font-size:15px}.eyebrow{font-size:10px}.field label{font-size:12px}.field i
   .mobileNav small{font-size:8px}
 }
 
+.securityPanel,.sessionsPanel{grid-column:1/-1}
+.securityRows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.securityRows>div{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.025)}
+.securityRows span,.securityRows b{display:block}.securityRows span{color:var(--muted);font-size:12px;margin-bottom:6px}
+.sessionList{display:grid;gap:10px}.sessionCard{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.02)}
+.sessionCard.current{border-color:rgba(101,239,155,.42);background:rgba(101,239,155,.06)}.sessionCard b,.sessionCard small{display:block}.sessionCard small{color:var(--muted);margin-top:5px}
+.mfaQr{display:grid;justify-items:center;gap:12px;margin:12px 0 18px}.mfaQr img{width:min(280px,100%);border-radius:14px;background:#fff;padding:8px}.mfaQr code{word-break:break-all;color:var(--accent)}
+.recoveryCodes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.recoveryCodes code{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;color:var(--accent);background:rgba(0,0,0,.2)}
+.securityState.warning{color:#ffbd66;border-color:rgba(255,189,102,.45)}
+@media(max-width:620px){.securityRows,.recoveryCodes{grid-template-columns:1fr}.sessionCard{align-items:flex-start;flex-direction:column}.sessionCard button{width:100%}}
+

@@ -6,7 +6,8 @@
     "start": "node start.js",
     "check": "node scripts/check.js",
     "check:ui": "node scripts/ui-check.js",
-    "test": "npm run check && npm run check:ui",
+    "check:security": "node scripts/security-check.js",
+    "test": "npm run check && npm run check:ui && npm run check:security",
     "smoke": "node scripts/smoke.js"
   },
   "engines": {

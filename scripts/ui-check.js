@@ -18,7 +18,7 @@ for(const id of ['authGate','loginTab','registerTab','authEmail','authPassword',
   if(!html.includes(`id="${id}"`))throw Error(`Eksik kritik UI elemanı: ${id}`);
 }
 if(/id="(?:bootSplash|loginTransition)"/.test(html))throw Error('Blocking login/boot overlay HTML içinde bulunamaz');
-if(!app.includes("me=(await api('/api/auth/'+mode")||!app.includes('await enterApp()'))throw Error('Login başarı akışı doğrudan enterApp çağırmalı');
+if(!app.includes("await api('/api/auth/'+mode")||!app.includes('result.mfa_required')||!app.includes('await enterApp()'))throw Error('Login başarı akışı e-posta/MFA kontrolünden sonra enterApp çağırmalı');
 if(!app.includes('bindAuthControls()'))throw Error('Giriş kontrolleri programatik olarak bağlanmalı');
 for(const width of ['900px','620px'])if(!css.includes(`max-width:${width}`)&&!css.includes(`max-width: ${width}`))throw Error(`Responsive breakpoint eksik: ${width}`);
 if(!css.includes('safe-area-inset-bottom'))throw Error('Mobil safe-area desteği eksik');
