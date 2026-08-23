@@ -5,6 +5,7 @@ const CACHE_NAME=`dm-app-${APP_VERSION}`;
 const APP_SHELL=[
   '/app',
   '/actions.js?v=17.2.0',
+  '/offline.js?v=17.2.0',
   '/app.js?v=17.2.0',
   '/style.css?v=17.2.0',
   '/mobile.css?v=17.2.0',
@@ -49,7 +50,8 @@ self.addEventListener('fetch',event=>{
         if(response.ok&&url.pathname.startsWith('/app'))(await caches.open(CACHE_NAME)).put('/app',response.clone()).catch(()=>{});
         return response;
       }catch{
-        return (await caches.match('/app'))||Response.error();
+        if(url.pathname==='/app'||url.pathname.startsWith('/app/'))return (await caches.match('/app'))||Response.error();
+        return (await caches.match(request))||Response.error();
       }
     })());
     return;
@@ -71,4 +73,4 @@ self.addEventListener('push',event=>{
   try{data={...data,...event.data.json()}}catch{}
   event.waitUntil(self.registration.showNotification(data.title,{body:data.body,icon:'/icon-192.png',badge:'/icon-192.png',data:{url:data.url||'/app'}}));
 });
-self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil(clients.openWindow(event.notification.data?.url||'/app'))});
+self.addEventListener('notificationclick',event=>{event.notification.close();const target=new URL(event.notification.data?.url||'/app',self.location.origin).href;event.waitUntil((async()=>{const windows=await clients.matchAll({type:'window',includeUncontrolled:true}),existing=windows.find(client=>client.url.startsWith(self.location.origin));if(existing){await existing.focus();return existing.navigate(target)}return clients.openWindow(target)})())});

@@ -8,8 +8,8 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const pkg=JSON.parse(read('package.json'));
 const lock=JSON.parse(read('package-lock.json'));
-const jsFiles=['server.js','start.js','render-start.js','app.js','admin.js','service-worker.js','site.js','auth-pages.js','pwa.js','actions.js','db/migrate.js'];
-const requiredFiles=['index.html','app.html','style.css','mobile.css','site.css','manifest.webmanifest','admin.html','admin.css','.env.example','PROJECT.md','CHANGELOG.md','migrations/001_platform_expansion.sql'];
+const jsFiles=['server.js','start.js','render-start.js','domain.js','app.js','admin.js','service-worker.js','site.js','auth-pages.js','pwa.js','actions.js','offline.js','report.js','storage.js','db/migrate.js','scripts/migrate-attachments-to-storage.js','scripts/sync-version.js','scripts/operations-check.js','scripts/preview.js','tests/domain.test.js'];
+const requiredFiles=['index.html','app.html','style.css','mobile.css','site.css','manifest.webmanifest','admin.html','admin.css','.env.example','PROJECT.md','CHANGELOG.md','report.html','report.css','migrations/001_platform_expansion.sql','migrations/002_operations.sql','migrations/003_diagnosis_content.sql'];
 
 for(const file of [...jsFiles,...requiredFiles]){
   if(!fs.existsSync(path.join(root,file)))throw Error(`Eksik production dosyası: ${file}`);
@@ -21,14 +21,14 @@ const start=read('start.js');
 const html=read('app.html');
 const publicHtml=read('index.html');
 const worker=read('service-worker.js');
-const migration=read('migrations/001_platform_expansion.sql');
+const migration=['migrations/001_platform_expansion.sql','migrations/002_operations.sql','migrations/003_diagnosis_content.sql'].map(read).join('\n');
 
 if(pkg.scripts.start!=='node start.js')throw Error('Production start command node start.js olmalı');
 if(!start.includes("require('./server.js')"))throw Error('start.js doğrudan server.js başlatmalı');
 if(!server.includes("const HOST='0.0.0.0'"))throw Error('Server 0.0.0.0 üzerinde dinlemeli');
 if(!server.includes('app.listen(PORT,HOST'))throw Error('Server HOST ve PORT ile başlamalı');
 if(!server.includes('process.env.RENDER_GIT_COMMIT'))throw Error('Health endpointi production commit bilgisini yayınlamalı');
-if(!server.includes(`'${pkg.version}'`))throw Error('Server varsayılan sürümü package.json ile farklı');
+if(!server.includes("const APP_VERSION=require('./package.json').version"))throw Error('Server sürümü package.json dosyasından okumalı');
 if(lock.version!==pkg.version||lock.packages?.['']?.version!==pkg.version)throw Error('package-lock sürümü package.json ile farklı');
 if(lock.packages?.['']?.dependencies?.['better-sqlite3'])throw Error('SQLite dependency production lockfile içinde bulunamaz');
 

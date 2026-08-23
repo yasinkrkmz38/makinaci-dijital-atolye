@@ -4,6 +4,25 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-23
 
+### V17.2 platform genişletmesi
+
+- Public site `/`, CMMS `/app`, yönetim `/admin`, hesaplama ve teknik makale URL'leri ayrıldı; sitemap, robots, canonical/meta ve schema altyapısı eklendi.
+- Frontend kopyaları ve geçici `v1621-*` yapısı kaldırıldı; sürümün tek kaynağı `package.json` ve sürüm eşitleme kontrolü oldu.
+- E-posta doğrulama, Resend şifre sıfırlama, kalıcı brute-force koruması, MFA/kurtarma kodları, cihaz oturumları ve şifre değişiminde toplu çıkış eklendi.
+- Takvim ve sayaç bazlı otomatik bakım şablonları, sonraki bakım üretimi, checklist sonucu/ölçümü/notu/fotoğrafı ve gerçek ekip teknisyeni ataması eklendi.
+- İş emirlerine gerçek kullanıcı ataması, “Benim işlerim”, yorum/timeline, gerçek süre sayacı, checklist, dosya, parça, onay ve servis raporu eklendi.
+- Stok miktarı yalnızca transaction içindeki giriş/çıkış/kullanım hareketleriyle değişir hâle getirildi; bakım ve iş emri parça kullanımı stoktan otomatik düşürülür.
+- Firma e-posta daveti, bekleyen davetleri yeniden gönderme/iptal ve güvenli kabul akışı eklendi.
+- Firma logolu, QR'lı, fotoğraf/ölçüm/parça ve teknisyen/müşteri imzalı servis raporları eklendi.
+- Yeni ek dosyalar S3 uyumlu object storage'a taşındı; eski BYTEA ekleri için kontrollü migration komutu eklendi.
+- Kalıcı okundu/ertele/kapat bildirimleri, e-posta ve PWA push, çevrimdışı saha kuyruğu ve kamera destekli QR tarayıcı eklendi.
+- Sunucu tarafı global arama ve büyük operasyon listelerinde sayfalama eklendi.
+- Teknik içeriklere kaynak, standart, revizyon tarihi ve ilgili araç/sistem bağlantıları eklendi.
+- Motor, rulman, hidrolik, pnömatik, CNC, elektrik ve redüktör için veritabanı tabanlı karar ağaçları ve sonuçtan arıza oluşturma eklendi.
+- ISO 286, metrik/UNC/UNF ön delik, torna/freze kesme, rulman kodu ve genişletilmiş hidrolik araçları public, paylaşılabilir kart ve WhatsApp akışıyla eklendi.
+- Admin mobil görünümü güvenli alan ve bottom-sheet davranışıyla V17 tasarım diline geçirildi; native `prompt()`/`confirm()` kullanımları özel dialog ile değiştirildi.
+- Migration, operasyon, güvenlik, UI ve kritik domain davranış testleri genişletildi; health endpointi DB/mail/storage/migration durumunu raporlar.
+
 ### V17.2 kapsamlı production stabilizasyonu
 
 - Stabilizasyon öncesi `backup/pre-codex-recovery-2026-08-23` dalı oluşturuldu.

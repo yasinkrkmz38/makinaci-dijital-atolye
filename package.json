@@ -7,13 +7,19 @@
     "check": "node scripts/check.js",
     "check:ui": "node scripts/ui-check.js",
     "check:security": "node scripts/security-check.js",
-    "test": "npm run check && npm run check:ui && npm run check:security",
-    "smoke": "node scripts/smoke.js"
+    "test": "npm run version:check && npm run check && npm run check:ui && npm run check:security && npm run check:operations && node --test tests/*.test.js",
+    "version:sync": "node scripts/sync-version.js",
+    "version:check": "node scripts/sync-version.js --check",
+    "check:operations": "node scripts/operations-check.js",
+    "smoke": "node scripts/smoke.js",
+    "migrate:attachments": "node scripts/migrate-attachments-to-storage.js",
+    "preview": "node scripts/preview.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1116.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "express": "^4.21.2",
@@ -22,6 +28,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.2.0",
     "pg": "^8.16.3",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "web-push": "^3.6.7"
   }
 }

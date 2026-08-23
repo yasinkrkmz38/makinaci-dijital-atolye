@@ -1,0 +1,49 @@
+'use strict';
+
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {stockQuantityAfter,canCompanyRole,sessionStateValid,nextCalendarDate}=require('../domain');
+const root=path.resolve(__dirname,'..');
+
+test('stok yalnızca pozitif giriş/çıkış hareketiyle değişir',()=>{
+  assert.equal(stockQuantityAfter(10,2.5,'out'),7.5);
+  assert.equal(stockQuantityAfter(10,2.5,'in'),12.5);
+  assert.equal(stockQuantityAfter(10,0,'count'),0);
+  assert.equal(stockQuantityAfter(10,8.5,'count'),8.5);
+  for(const bad of [0,-1,Infinity,NaN])assert.throws(()=>stockQuantityAfter(10,bad,'out'),RangeError);
+  assert.throws(()=>stockQuantityAfter(2,3,'out'),/Stok yetersiz/);
+});
+
+test('firma rolleri en az yetki prensibini uygular',()=>{
+  assert.equal(canCompanyRole('owner','manageRoles'),true);
+  assert.equal(canCompanyRole('manager','manageRoles'),false);
+  assert.equal(canCompanyRole('technician','work'),true);
+  assert.equal(canCompanyRole('operator','work'),false);
+  assert.equal(canCompanyRole('viewer','operate'),false);
+});
+
+test('şifre sürümü değişen, iptal edilmiş veya süresi dolmuş oturum reddedilir',()=>{
+  const valid={tokenVersion:4,userVersion:4,revokedAt:null,expiresAt:new Date(Date.now()+60000)};
+  assert.equal(sessionStateValid(valid),true);
+  assert.equal(sessionStateValid({...valid,userVersion:5}),false);
+  assert.equal(sessionStateValid({...valid,revokedAt:new Date()}),false);
+  assert.equal(sessionStateValid({...valid,expiresAt:new Date(Date.now()-1)}),false);
+});
+
+test('takvim bazlı bakım ay sonunu güvenli taşır',()=>{
+  assert.equal(nextCalendarDate('2026-01-31',1),'2026-02-28');
+  assert.equal(nextCalendarDate('2024-01-31',1),'2024-02-29');
+  assert.equal(nextCalendarDate('2026-08-23',3),'2026-11-23');
+  assert.throws(()=>nextCalendarDate('2026-08-23',0),RangeError);
+});
+
+test('firma izolasyonu ve bakım tekilliği SQL sözleşmesinde zorunludur',()=>{
+  const server=fs.readFileSync(path.join(root,'server.js'),'utf8');
+  const migration=fs.readFileSync(path.join(root,'migrations/002_operations.sql'),'utf8');
+  assert.match(server,/ownMachine\(b\.machine_id,req\.company\.id\)/);
+  assert.match(server,/SELECT \* FROM parts WHERE id=\$1 AND company_id=\$2 FOR UPDATE/);
+  assert.match(server,/WHERE w\.id=\$1 AND w\.company_id=\$2/);
+  assert.match(migration,/CREATE UNIQUE INDEX idx_maintenance_template_open/);
+});

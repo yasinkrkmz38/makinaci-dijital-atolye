@@ -1,6 +1,6 @@
 'use strict';
 (function(){
-  const attributes=['onclick','onchange','oninput','onsubmit'];
+  const attributes=['onclick','onchange','oninput','onfocus','onsubmit'];
   function split(source,separator){
     const parts=[];let current='',quote='',escaped=false,depth=0;
     for(const char of String(source||'')){
@@ -48,6 +48,10 @@
     });
   }
   function scan(root){if(root.nodeType!==1&&root.nodeType!==9)return;const elements=root.nodeType===1?[root,...root.querySelectorAll('*')]:[...root.querySelectorAll('*')];for(const element of elements)for(const attribute of attributes)if(element.hasAttribute?.(attribute))bind(element,attribute)}
+  function safe(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+  function dialog({title,message,input=false,value='',confirmLabel='Onayla'}){return new Promise(resolve=>{const overlay=document.getElementById('modal')||document.getElementById('adminModal'),card=document.getElementById('modalCard')||document.getElementById('adminModalCard');if(!overlay||!card){resolve(input?null:false);return}card.innerHTML=`<div class="modalHead"><div><span class="badge">ONAY</span><h2>${safe(title)}</h2><p>${safe(message)}</p></div></div>${input?`<div class="field"><label>Değer</label><input data-dialog-input value="${safe(value)}"></div>`:''}<div class="heroBtns"><button class="ghost" data-dialog-cancel>Vazgeç</button><button class="primary" data-dialog-confirm>${safe(confirmLabel)}</button></div>`;overlay.classList.remove('hide');document.body.style.overflow='hidden';const finish=result=>{overlay.classList.add('hide');card.innerHTML='';document.body.style.overflow='';resolve(result)},field=card.querySelector('[data-dialog-input]');card.querySelector('[data-dialog-cancel]').addEventListener('click',()=>finish(input?null:false));card.querySelector('[data-dialog-confirm]').addEventListener('click',()=>finish(input?field.value:true));if(field){field.focus();field.select();field.addEventListener('keydown',event=>{if(event.key==='Enter')finish(field.value)})}})}
+  window.confirmAction=(message,title='İşlemi onayla')=>dialog({title,message,confirmLabel:'Onayla'});
+  window.promptAction=(message,value='',title='Bilgi gir')=>dialog({title,message,input:true,value,confirmLabel:'Kaydet'});
   scan(document);
   new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)scan(node)}).observe(document.documentElement,{childList:true,subtree:true});
 })();

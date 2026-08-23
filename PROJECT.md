@@ -68,4 +68,4 @@ Production veritabanında DROP, recreate veya toplu DELETE yapılmaz. Migration'
 
 ## Güncel çalışma
 
-23 Ağustos 2026 tarihli platform genişletme çalışması; canonical frontend/public site ayrımını, migration temelini, güvenli auth, operasyonel CMMS akışları, bildirim/depolama ve teknik içerik/SEO katmanlarını tek kontrollü dalda tamamlamak üzere yürütülmektedir.
+23 Ağustos 2026 platform genişletmesi `codex/platform-expansion` dalında tamamlanmıştır. Canonical frontend/public site ayrımı, güvenli auth, periyodik bakım/checklist, stok bağlantılı iş emirleri, ekip davetleri, object storage, bildirim/PWA/offline saha, karar ağacı, public teknik araçlar ve SEO katmanı birlikte test edilmektedir. Ana dala geçiş yalnızca migration denemesi, tarayıcı doğrulaması ve production smoke kapıları tamamlandıktan sonra yapılır.
