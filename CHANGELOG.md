@@ -4,6 +4,11 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-23
 
+### Admin görünüm tutarlılığı
+
+- Admin Center içindeki eski V16 etiketleri ürünün güncel V17.2.0 sürümüyle eşitlendi.
+- Depolama göstergesi PostgreSQL yerine production dosya hedefi Cloudflare R2 olarak güncellendi.
+
 ### Organik trafik ve teknik SEO altyapısı
 
 - Beş public hesaplama sayfası istemci tarafı generic metadata yerine sunucu tarafı özgün title, description, self-canonical ve sosyal paylaşım etiketleriyle yayınlanır hâle getirildi.
