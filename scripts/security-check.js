@@ -9,12 +9,14 @@ for(const invariant of [
   'checkLoginGuard(req,email)',
   "Number(row.email_failures)>=5",
   "'/api/auth/resend-verification'",
+  "'/api/account/resend-verification'",
   "'/api/auth/verify-email'",
   "'/api/auth/mfa/verify'",
   "'/api/account/mfa/setup'",
   "'/api/account/mfa/enable'",
   "'/api/account/sessions/revoke-others'",
   'session_version=session_version+1',
+  'canUseUnverifiedSession(req.originalUrl,req.method)',
   'UPDATE auth_sessions SET revoked_at=NOW()',
   `scriptSrcAttr:["'none'"]`
 ])if(!server.includes(invariant))throw Error(`Güvenlik invariantı eksik: ${invariant}`);

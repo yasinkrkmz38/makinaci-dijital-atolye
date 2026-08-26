@@ -4,7 +4,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {stockQuantityAfter,canCompanyRole,sessionStateValid,nextCalendarDate}=require('../domain');
+const {stockQuantityAfter,canCompanyRole,sessionStateValid,canUseUnverifiedSession,nextCalendarDate}=require('../domain');
 const root=path.resolve(__dirname,'..');
 
 test('stok yalnızca pozitif giriş/çıkış hareketiyle değişir',()=>{
@@ -30,6 +30,15 @@ test('şifre sürümü değişen, iptal edilmiş veya süresi dolmuş oturum red
   assert.equal(sessionStateValid({...valid,userVersion:5}),false);
   assert.equal(sessionStateValid({...valid,revokedAt:new Date()}),false);
   assert.equal(sessionStateValid({...valid,expiresAt:new Date(Date.now()-1)}),false);
+});
+
+test('doğrulanmamış oturum yalnızca hesap doğrulama yüzeyini kullanır',()=>{
+  assert.equal(canUseUnverifiedSession('/api/auth/me','GET'),true);
+  assert.equal(canUseUnverifiedSession('/api/account/security','GET'),true);
+  assert.equal(canUseUnverifiedSession('/api/account/resend-verification','POST'),true);
+  assert.equal(canUseUnverifiedSession('/api/dashboard','GET'),false);
+  assert.equal(canUseUnverifiedSession('/api/account/password','POST'),false);
+  assert.equal(canUseUnverifiedSession('/api/account/resend-verification','GET'),false);
 });
 
 test('takvim bazlı bakım ay sonunu güvenli taşır',()=>{

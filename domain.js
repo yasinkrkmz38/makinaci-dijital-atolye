@@ -24,6 +24,14 @@ function canCompanyRole(role,capability){return (permissions[capability]||[]).in
 function sessionStateValid({tokenVersion,userVersion,revokedAt,expiresAt,now=Date.now()}){
   return Number(tokenVersion)===Number(userVersion)&&!revokedAt&&new Date(expiresAt).getTime()>Number(now);
 }
+function canUseUnverifiedSession(path,method='GET'){
+  const key=`${String(method).toUpperCase()} ${String(path).split('?')[0]}`;
+  return new Set([
+    'GET /api/auth/me',
+    'GET /api/account/security',
+    'POST /api/account/resend-verification'
+  ]).has(key);
+}
 function nextCalendarDate(date,months){
   const count=Math.round(finiteNumber(months,'Ay aralığı'));
   if(count<1||count>120)throw new RangeError('Takvim periyodu 1–120 ay olmalı');
@@ -34,4 +42,4 @@ function nextCalendarDate(date,months){
   source.setUTCDate(Math.min(day,lastDay));return source.toISOString().slice(0,10);
 }
 
-module.exports={companyRoles,finiteNumber,stockQuantityAfter,canCompanyRole,sessionStateValid,nextCalendarDate};
+module.exports={companyRoles,finiteNumber,stockQuantityAfter,canCompanyRole,sessionStateValid,canUseUnverifiedSession,nextCalendarDate};

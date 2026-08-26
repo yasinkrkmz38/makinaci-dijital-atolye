@@ -2,6 +2,16 @@
 
 Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kaydeder.
 
+## 2026-08-26
+
+### Kayıt ve e-posta doğrulama deneyimi
+
+- Kayıt tamamlandıktan sonra doğrulama e-postası gönderilemese bile hesabın oluşturulup kullanıcıya kısıtlı oturum açılması sağlandı.
+- Doğrulanmamış kullanıcı doğrudan Hesap ve Güvenlik ekranına yönlendirilir; doğrulama bitene kadar operasyon verileri hem arayüzde hem API katmanında kapalıdır.
+- Hesap içinden doğrulama bağlantısını yeniden gönderme ve doğrulama durumunu yenileme eklendi.
+- Resend hataları genel “sunucu hatası” yerine kullanıcıya tekrar denenebilir, açık bir e-posta hatası olarak gösterilir.
+- Doğrulanmamış oturumun yalnızca izinli güvenlik uç noktalarına erişebildiğini doğrulayan test eklendi.
+
 ## 2026-08-23
 
 ### Admin görünüm tutarlılığı
