@@ -4,6 +4,10 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-26
 
+### Production çalışma ortamı
+
+- Render'ın kararsız Node 26 alpha sürümünü seçmesini önlemek için production Node sürümü kararlı `22.x` hattına sabitlendi.
+
 ### Kayıt ve e-posta doğrulama deneyimi
 
 - Kayıt tamamlandıktan sonra doğrulama e-postası gönderilemese bile hesabın oluşturulup kullanıcıya kısıtlı oturum açılması sağlandı.
