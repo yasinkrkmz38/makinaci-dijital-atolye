@@ -4,6 +4,14 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-27
 
+### Mobil tasarım diline uyarlanmış masaüstü arayüzü
+
+- Telefon arayüzündeki yuvarlatılmış kart, cam yüzey, katmanlı koyu zemin ve belirgin yeşil aktif durum dili masaüstüne taşındı.
+- Masaüstü kenar çubuğu sayfa kenarından ayrılan, kaydırılabilir ve küçük ekran yüksekliğinde de kullanılabilen uygulama paneline dönüştürüldü.
+- Üst araç çubuğu yapışkan cam panele; firma seçimi, global arama, bildirim ve profil alanları ortak görsel sisteme geçirildi.
+- Kontrol merkezi hero alanı, KPI kartları, paneller, form alanları, liste kartları ve modallar daha geniş köşeler ve tutarlı derinlikle yenilendi.
+- 901–1220 piksel aralığı için kompakt masaüstü yerleşimi, 1600 piksel üzeri için sekiz kolonlu KPI kullanımı eklendi; telefon kırılımları korunarak regresyon kontrolü genişletildi.
+
 ### Admin Center erişim teşhisi
 
 - Normal kullanıcı `/admin` adresini açtığında ana sayfaya sessizce yönlendirilmek yerine eksik platform yetkisini açıkça görür.
