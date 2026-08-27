@@ -1777,7 +1777,7 @@ html[data-connection="offline"]::before{content:'Çevrimdışı saha modu • g�
   .brand small{font-size:8px}
   .sideLabel{margin:7px 10px 3px;font-size:8px}
   .sidebar nav{gap:1px}
-  .nav{min-height:35px;padding:7px 10px;border-radius:11px;font-size:12px}
+  .nav{min-height:32px;padding:6px 10px;border-radius:11px;font-size:12px}
   .sideUser{min-height:52px;margin-top:auto;padding:7px;border-radius:14px}
   .sideUser .avatar{width:34px;height:34px}
 }

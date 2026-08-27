@@ -1,9 +1,10 @@
 'use strict';
 
-const companyRoles=['owner','manager','technician','operator','viewer'];
+const companyRoles=['owner','manager','maintenance_manager','technician','operator','warehouse_manager','viewer'];
 const permissions={
-  manageCompany:['owner','manager'],manageRoles:['owner'],editAssets:['owner','manager'],
-  work:['owner','manager','technician'],operate:['owner','manager','technician','operator'],view:companyRoles
+  manageCompany:['owner','manager'],manageRoles:['owner'],editAssets:['owner','manager','maintenance_manager'],
+  work:['owner','manager','maintenance_manager','technician','warehouse_manager'],
+  operate:['owner','manager','maintenance_manager','technician','operator','warehouse_manager'],view:companyRoles
 };
 
 function finiteNumber(value,label='Değer'){

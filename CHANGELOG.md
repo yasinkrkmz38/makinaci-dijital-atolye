@@ -4,6 +4,18 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-27
 
+### Profesyonel CMMS bağlantılı operasyon genişletmesi
+
+- Makina sayaç geçmişi; çalışma saati, çevrim, kilometre, üretim ve özel sayaç tipleriyle firma kapsamında eklendi.
+- Sayaç güncellemesi azalan değerleri reddeder, çalışma saati bakım eşiklerini yeniden kontrol eder ve kullanıcı/zaman bilgisini saklar.
+- İş emirlerine otomatik `WO-YIL-000001` numarası, bağlı arıza ve profesyonel kapanış alanları için güvenli migration eklendi.
+- Bakım Şefi ve Depo Sorumlusu rolleri gerçek backend yetki listesine eklendi.
+- Vardiya devir teslim ekranı; açık arıza, açık iş emri ve geciken bakım özetiyle eklendi.
+- Makina–yedek parça çoktan çoğa eşleştirmesi ve firma izolasyonlu API'leri eklendi.
+- Makinalara saatlik duruş maliyeti; raporlara MTTR, MTBF, bakım uyum oranı ve tahmini duruş maliyeti altyapısı eklendi.
+- Arıza, iş emri, bakım ve stok raporları için Excel uyumlu UTF-8 CSV çıktıları eklendi.
+- Migration yalnızca genişletici `ALTER TABLE ... ADD COLUMN` ve `CREATE TABLE/INDEX` işlemleri kullanır; mevcut veriyi silmez.
+
 ### Mobil tasarım diline uyarlanmış masaüstü arayüzü
 
 - Telefon arayüzündeki yuvarlatılmış kart, cam yüzey, katmanlı koyu zemin ve belirgin yeşil aktif durum dili masaüstüne taşındı.

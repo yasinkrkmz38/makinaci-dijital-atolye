@@ -20,6 +20,8 @@ test('firma rolleri en az yetki prensibini uygular',()=>{
   assert.equal(canCompanyRole('owner','manageRoles'),true);
   assert.equal(canCompanyRole('manager','manageRoles'),false);
   assert.equal(canCompanyRole('technician','work'),true);
+  assert.equal(canCompanyRole('maintenance_manager','editAssets'),true);
+  assert.equal(canCompanyRole('warehouse_manager','work'),true);
   assert.equal(canCompanyRole('operator','work'),false);
   assert.equal(canCompanyRole('viewer','operate'),false);
 });
@@ -64,4 +66,16 @@ test('firma izolasyonu ve bakım tekilliği SQL sözleşmesinde zorunludur',()=>
   assert.match(server,/SELECT \* FROM parts WHERE id=\$1 AND company_id=\$2 FOR UPDATE/);
   assert.match(server,/WHERE w\.id=\$1 AND w\.company_id=\$2/);
   assert.match(migration,/CREATE UNIQUE INDEX idx_maintenance_template_open/);
+});
+
+test('profesyonel CMMS genişletmeleri firma kapsamında ve veri koruyucudur',()=>{
+  const server=fs.readFileSync(path.join(root,'server.js'),'utf8');
+  const migration=fs.readFileSync(path.join(root,'migrations/004_professional_cmms.sql'),'utf8');
+  assert.match(server,/machine_meter_readings WHERE company_id=\$1 AND machine_id=\$2/);
+  assert.match(server,/shift_handovers s[\s\S]*s\.company_id=\$1/);
+  assert.match(server,/machine_parts\(company_id,machine_id,part_id/);
+  assert.match(server,/SELECT \* FROM machines WHERE id=\$1 AND company_id=\$2 AND archived_at IS NULL FOR UPDATE/);
+  assert.match(migration,/work_order_no='WO-'/);
+  assert.match(migration,/hourly_downtime_cost NUMERIC/);
+  assert.doesNotMatch(migration,/\b(?:DROP TABLE|TRUNCATE|DELETE FROM)\b/i);
 });

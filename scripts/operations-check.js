@@ -12,6 +12,7 @@ const storage=read('storage.js');
 const worker=read('service-worker.js');
 const migration1=read('migrations/001_platform_expansion.sql');
 const migration2=read('migrations/002_operations.sql');
+const migration4=read('migrations/004_professional_cmms.sql');
 const diagnosis=read('migrations/003_diagnosis_content.sql');
 
 const requireAll=(source,values,label)=>{for(const value of values)if(!source.includes(value))throw Error(`${label}: ${value}`)};
@@ -28,6 +29,7 @@ requireAll(server,[
 
 requireAll(migration1,['maintenance_templates','checklist_items','part_usages','work_order_events','work_time_entries','company_invitations','push_subscriptions','diagnosis_trees'],'Ana migration eksik');
 requireAll(migration2,['CREATE UNIQUE INDEX idx_maintenance_template_open','report_signatures','client_request_id','logo_attachment_id'],'Operasyon migration eksik');
+requireAll(migration4,['machine_meter_readings','shift_handovers','machine_parts','work_order_no','hourly_downtime_cost','idx_work_orders_assignment_status'],'Profesyonel CMMS migration eksik');
 for(const system of ['motor','bearing','hydraulic','pneumatic','cnc','electrical','gearbox'])if(!diagnosis.includes(`('${system}','root'`))throw Error(`Teşhis ağacı eksik: ${system}`);
 
 if(/\b(?:prompt|confirm)\s*\(/.test(app+admin))throw Error('Native prompt/confirm kullanımı kaldı');
