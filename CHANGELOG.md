@@ -8,6 +8,7 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 - Normal kullanıcı `/admin` adresini açtığında ana sayfaya sessizce yönlendirilmek yerine eksik platform yetkisini açıkça görür.
 - Platform yöneticisi için MFA kurulumu veya MFA doğrulamalı oturum eksikse doğru Hesap ve Güvenlik adımı gösterilir.
+- MFA etkin olup mevcut oturum doğrulanmamışsa Admin Center tek düğmeyle güvenli çıkış ve MFA'lı yeniden giriş akışını başlatır.
 - Render `ADMIN_EMAIL` ayarı artık mevcut hesabı ek parola sırrı gerektirmeden platform yöneticisine yükseltebilir; `ADMIN_PASSWORD` yalnızca yeni yönetici hesabı oluşturulacaksa zorunludur.
 
 ### İsteğe bağlı e-posta doğrulaması

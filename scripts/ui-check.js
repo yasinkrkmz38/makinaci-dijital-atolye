@@ -27,6 +27,6 @@ for(const width of ['900px','620px'])if(!css.includes(`max-width:${width}`)&&!cs
 if(!css.includes('safe-area-inset-bottom'))throw Error('Mobil safe-area desteği eksik');
 if(!css.includes('.mobileNav'))throw Error('Mobil alt navigasyon stili eksik');
 if(!pwa.includes("addEventListener('controllerchange'")||!pwa.includes('location.reload()'))throw Error('Service worker sürüm geçişi otomatik yenileme koruması eksik');
-if(admin.includes("location.href='/';return")||!admin.includes("'Platform yetkisi gerekli'")||!admin.includes("'MFA kurulumu gerekli'"))throw Error('Admin Center yetki/MFA kapısı açıklayıcı olmalı ve ana sayfaya sessiz yönlendirmemeli');
+if(admin.includes("location.href='/';return")||!admin.includes("'Platform yetkisi gerekli'")||!admin.includes("'MFA kurulumu gerekli'")||!admin.includes("'Çıkış yap ve yeniden gir'")||!admin.includes('adminRelogin'))throw Error('Admin Center yetki/MFA kapısı açıklayıcı olmalı ve MFA doğrulamalı yeniden giriş sunmalı');
 
 console.log(`UI kontrolü başarılı: ${pages.length} modül, login, PWA ve responsive navigasyon doğrulandı.`);
