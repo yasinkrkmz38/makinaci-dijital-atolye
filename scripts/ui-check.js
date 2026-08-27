@@ -19,6 +19,8 @@ for(const id of ['authGate','loginTab','registerTab','authEmail','authPassword',
 }
 if(/id="(?:bootSplash|loginTransition)"/.test(html))throw Error('Blocking login/boot overlay HTML içinde bulunamaz');
 if(!app.includes("await api('/api/auth/'+mode")||!app.includes('result.mfa_required')||!app.includes('await enterApp()'))throw Error('Login başarı akışı e-posta/MFA kontrolünden sonra enterApp çağırmalı');
+if(!app.includes("me.email_verification_required===true&&me.email_verified===false"))throw Error('E-posta doğrulama kısıtı yalnızca zorunlu politika açıkken uygulanmalı');
+if(!app.includes("'Doğrulanmadı · İsteğe bağlı'"))throw Error('Hesap güvenliği isteğe bağlı e-posta doğrulama durumunu göstermeli');
 if(!app.includes('bindAuthControls()'))throw Error('Giriş kontrolleri programatik olarak bağlanmalı');
 for(const width of ['900px','620px'])if(!css.includes(`max-width:${width}`)&&!css.includes(`max-width: ${width}`))throw Error(`Responsive breakpoint eksik: ${width}`);
 if(!css.includes('safe-area-inset-bottom'))throw Error('Mobil safe-area desteği eksik');

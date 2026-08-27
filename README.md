@@ -28,7 +28,7 @@ Kalıcı proje bağlamı için `PROJECT.md`, sürüm geçmişi için `CHANGELOG.
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`: İlk platform yöneticisi
 - `PUBLIC_BASE_URL`: Public site adresi
 - `RESEND_API_KEY`, `MAIL_FROM`: E-posta doğrulama ve şifre sıfırlama gönderimi
-- `REQUIRE_EMAIL_VERIFICATION`: Yeni hesaplarda doğrulamayı zorunlu tutar; varsayılan `true`
+- `REQUIRE_EMAIL_VERIFICATION`: `true` yapılırsa doğrulanmamış hesapları yalnızca güvenlik ekranıyla sınırlar; varsayılan `false`, yani doğrulama isteğe bağlıdır
 - `ADMIN_MFA_REQUIRED`: Platform yöneticilerinde MFA'yı zorunlu tutar; varsayılan `true`
 - `STORAGE_*`: S3 uyumlu object storage endpoint, bucket ve erişim bilgileri
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`: PWA push bildirim anahtarları

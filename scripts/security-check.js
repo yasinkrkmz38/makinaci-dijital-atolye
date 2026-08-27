@@ -17,11 +17,13 @@ for(const invariant of [
   "'/api/account/sessions/revoke-others'",
   'session_version=session_version+1',
   'canUseUnverifiedSession(req.originalUrl,req.method)',
+  'email_verification_required:EMAIL_VERIFICATION_REQUIRED',
+  "REQUIRE_EMAIL_VERIFICATION||'false'",
   'UPDATE auth_sessions SET revoked_at=NOW()',
   `scriptSrcAttr:["'none'"]`
 ])if(!server.includes(invariant))throw Error(`Güvenlik invariantı eksik: ${invariant}`);
 for(const column of ['email_verified_at','session_version','mfa_secret_cipher','mfa_recovery_codes'])if(!migration.includes(column))throw Error(`Auth migration alanı eksik: ${column}`);
-for(const setting of ['REQUIRE_EMAIL_VERIFICATION=true','ADMIN_MFA_REQUIRED=true'])if(!env.includes(setting))throw Error(`Güvenlik ortam ayarı eksik: ${setting}`);
+for(const setting of ['REQUIRE_EMAIL_VERIFICATION=false','ADMIN_MFA_REQUIRED=true'])if(!env.includes(setting))throw Error(`Güvenlik ortam ayarı eksik: ${setting}`);
 if(/\beval\s*\(|new\s+Function\s*\(/.test(actions))throw Error('CSP olay yönlendiricisi dinamik kod çalıştıramaz');
 if(!actions.includes("element.removeAttribute(attribute)"))throw Error('HTML olay nitelikleri güvenli bağlama sırasında kaldırılmalı');
 console.log('Güvenlik kontrolü başarılı: e-posta doğrulama, MFA, oturum iptali, brute-force ve CSP doğrulandı.');

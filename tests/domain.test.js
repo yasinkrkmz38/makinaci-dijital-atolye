@@ -32,13 +32,22 @@ test('şifre sürümü değişen, iptal edilmiş veya süresi dolmuş oturum red
   assert.equal(sessionStateValid({...valid,expiresAt:new Date(Date.now()-1)}),false);
 });
 
-test('doğrulanmamış oturum yalnızca hesap doğrulama yüzeyini kullanır',()=>{
+test('zorunlu doğrulama politikası açıldığında oturum yalnızca güvenlik yüzeyini kullanır',()=>{
   assert.equal(canUseUnverifiedSession('/api/auth/me','GET'),true);
   assert.equal(canUseUnverifiedSession('/api/account/security','GET'),true);
   assert.equal(canUseUnverifiedSession('/api/account/resend-verification','POST'),true);
   assert.equal(canUseUnverifiedSession('/api/dashboard','GET'),false);
   assert.equal(canUseUnverifiedSession('/api/account/password','POST'),false);
   assert.equal(canUseUnverifiedSession('/api/account/resend-verification','GET'),false);
+});
+
+test('e-posta doğrulaması varsayılan olarak isteğe bağlıdır',()=>{
+  const server=fs.readFileSync(path.join(root,'server.js'),'utf8');
+  const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
+  assert.match(server,/REQUIRE_EMAIL_VERIFICATION\|\|'false'/);
+  assert.match(server,/INSERT INTO users\(name,email,password_hash,email_verified_at\) VALUES\(\$1,\$2,\$3,NULL\)/);
+  assert.match(server,/verification_required:false,email_sent:false/);
+  assert.match(app,/email_verification_required===true&&me\.email_verified===false/);
 });
 
 test('takvim bazlı bakım ay sonunu güvenli taşır',()=>{

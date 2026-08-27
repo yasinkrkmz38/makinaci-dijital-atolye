@@ -2,6 +2,16 @@
 
 Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kaydeder.
 
+## 2026-08-27
+
+### İsteğe bağlı e-posta doğrulaması
+
+- Yeni kullanıcı kayıt tamamlanır tamamlanmaz normal oturumla uygulamanın bütün modüllerini kullanabilir.
+- E-posta adresi doğrulanmış gibi işaretlenmez; doğrulama gerçek bağlantıyla Hesap ve Güvenlik bölümünden isteğe bağlı yapılır.
+- E-posta doğrulamasının MFA, aktif oturumlar ve diğer cihazlardan çıkış özelliklerini engellemesi kaldırıldı.
+- Zorunlu doğrulama politika anahtarı korundu ancak varsayılan ve production davranışı `false` olacak şekilde değiştirildi.
+- Resend için `dijitalmakinaci.pro` alan adı Hostinger DNS üzerinde DKIM ve gönderim CNAME kayıtlarıyla doğrulandı.
+
 ## 2026-08-26
 
 ### Production çalışma ortamı
