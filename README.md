@@ -25,7 +25,7 @@ Kalıcı proje bağlamı için `PROJECT.md`, sürüm geçmişi için `CHANGELOG.
 - `JWT_SECRET`: Production'da en az 32 karakterlik rastgele anahtar
 - `NODE_ENV`: Production'da `production`
 - `PORT`: HTTP portu; varsayılan `10000`
-- `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`: İlk platform yöneticisi
+- `ADMIN_EMAIL`: Var olan hesabı platform yöneticisine yükseltir. Eşleşen hesap yoksa yeni yönetici oluşturmak için `ADMIN_PASSWORD` da gereklidir; `ADMIN_NAME` oluşturulan hesabın adıdır.
 - `PUBLIC_BASE_URL`: Public site adresi
 - `RESEND_API_KEY`, `MAIL_FROM`: E-posta doğrulama ve şifre sıfırlama gönderimi
 - `REQUIRE_EMAIL_VERIFICATION`: `true` yapılırsa doğrulanmamış hesapları yalnızca güvenlik ekranıyla sınırlar; varsayılan `false`, yani doğrulama isteğe bağlıdır

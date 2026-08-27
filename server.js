@@ -227,7 +227,17 @@ async function initDb(){
  await q('CREATE INDEX IF NOT EXISTS idx_parts_company ON parts(company_id)');
 
  const ae=clean(process.env.ADMIN_EMAIL).toLowerCase(),ap=clean(process.env.ADMIN_PASSWORD);
- if(ae&&ap){const f=await q('SELECT id,name FROM users WHERE email=$1',[ae]);if(!f.rows.length){const h=await bcrypt.hash(ap,12);const u=(await q("INSERT INTO users(name,email,password_hash,role,platform_admin,email_verified_at) VALUES($1,$2,$3,'admin',true,NOW()) RETURNING id,name,email,role,platform_admin,email_verified_at,session_version,mfa_enabled",[process.env.ADMIN_NAME||'Site Yöneticisi',ae,h])).rows[0];await createPersonalCompany(u)}else{await q("UPDATE users SET role='admin',platform_admin=true,email_verified_at=COALESCE(email_verified_at,NOW()) WHERE email=$1",[ae]);await ensureCompanyForUser(f.rows[0].id)}}
+ if(ae){
+  const f=await q('SELECT id,name FROM users WHERE email=$1',[ae]);
+  if(f.rows.length){
+   await q("UPDATE users SET role='admin',platform_admin=true,email_verified_at=COALESCE(email_verified_at,NOW()) WHERE email=$1",[ae]);
+   await ensureCompanyForUser(f.rows[0].id);
+  }else{
+   if(!ap)throw Error('ADMIN_EMAIL hesabı bulunamadı. Yeni platform yöneticisi oluşturmak için ADMIN_PASSWORD gerekli');
+   const h=await bcrypt.hash(ap,12),u=(await q("INSERT INTO users(name,email,password_hash,role,platform_admin,email_verified_at) VALUES($1,$2,$3,'admin',true,NOW()) RETURNING id,name,email,role,platform_admin,email_verified_at,session_version,mfa_enabled",[process.env.ADMIN_NAME||'Site Yöneticisi',ae,h])).rows[0];
+   await createPersonalCompany(u);
+  }
+ }
 }
 
 // AUTH

@@ -7,6 +7,7 @@ const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const html=read('app.html');
 const app=read('app.js');
 const pwa=read('pwa.js');
+const admin=read('admin.js');
 const css=read('style.css')+read('mobile.css');
 
 const pages=['dashboard','machines','maintenance','calendar','workorders','diagnosis','analytics','parts','tools','library','team','account'];
@@ -26,5 +27,6 @@ for(const width of ['900px','620px'])if(!css.includes(`max-width:${width}`)&&!cs
 if(!css.includes('safe-area-inset-bottom'))throw Error('Mobil safe-area desteği eksik');
 if(!css.includes('.mobileNav'))throw Error('Mobil alt navigasyon stili eksik');
 if(!pwa.includes("addEventListener('controllerchange'")||!pwa.includes('location.reload()'))throw Error('Service worker sürüm geçişi otomatik yenileme koruması eksik');
+if(admin.includes("location.href='/';return")||!admin.includes("'Platform yetkisi gerekli'")||!admin.includes("'MFA kurulumu gerekli'"))throw Error('Admin Center yetki/MFA kapısı açıklayıcı olmalı ve ana sayfaya sessiz yönlendirmemeli');
 
 console.log(`UI kontrolü başarılı: ${pages.length} modül, login, PWA ve responsive navigasyon doğrulandı.`);

@@ -19,6 +19,8 @@ for(const invariant of [
   'canUseUnverifiedSession(req.originalUrl,req.method)',
   'email_verification_required:EMAIL_VERIFICATION_REQUIRED',
   "REQUIRE_EMAIL_VERIFICATION||'false'",
+  "if(ae){",
+  "if(!ap)throw Error('ADMIN_EMAIL hesabı bulunamadı.",
   'UPDATE auth_sessions SET revoked_at=NOW()',
   `scriptSrcAttr:["'none'"]`
 ])if(!server.includes(invariant))throw Error(`Güvenlik invariantı eksik: ${invariant}`);

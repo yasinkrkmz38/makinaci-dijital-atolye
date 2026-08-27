@@ -4,6 +4,12 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-27
 
+### Admin Center erişim teşhisi
+
+- Normal kullanıcı `/admin` adresini açtığında ana sayfaya sessizce yönlendirilmek yerine eksik platform yetkisini açıkça görür.
+- Platform yöneticisi için MFA kurulumu veya MFA doğrulamalı oturum eksikse doğru Hesap ve Güvenlik adımı gösterilir.
+- Render `ADMIN_EMAIL` ayarı artık mevcut hesabı ek parola sırrı gerektirmeden platform yöneticisine yükseltebilir; `ADMIN_PASSWORD` yalnızca yeni yönetici hesabı oluşturulacaksa zorunludur.
+
 ### İsteğe bağlı e-posta doğrulaması
 
 - Yeni kullanıcı kayıt tamamlanır tamamlanmaz normal oturumla uygulamanın bütün modüllerini kullanabilir.
