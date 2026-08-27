@@ -1,15 +1,15 @@
 'use strict';
 
-const APP_VERSION='17.2.0';
+const APP_VERSION='17.2.1';
 const CACHE_NAME=`dm-app-${APP_VERSION}`;
 const APP_SHELL=[
   '/app',
-  '/actions.js?v=17.2.0',
-  '/offline.js?v=17.2.0',
-  '/app.js?v=17.2.0',
-  '/style.css?v=17.2.0',
-  '/mobile.css?v=17.2.0',
-  '/manifest.webmanifest?v=17.2.0',
+  '/actions.js?v=17.2.1',
+  '/offline.js?v=17.2.1',
+  '/app.js?v=17.2.1',
+  '/style.css?v=17.2.1',
+  '/mobile.css?v=17.2.1',
+  '/manifest.webmanifest?v=17.2.1',
   '/forgot-password.html',
   '/reset-password.html',
   '/verify-email.html',
@@ -58,12 +58,14 @@ self.addEventListener('fetch',event=>{
   }
 
   event.respondWith((async()=>{
+    const cached=await caches.match(request);
+    if(cached)return cached;
     try{
-      const response=await fetch(request,{cache:'no-store'});
+      const response=await fetch(request);
       if(response.ok)(await caches.open(CACHE_NAME)).put(request,response.clone()).catch(()=>{});
       return response;
     }catch{
-      return (await caches.match(request))||Response.error();
+      return Response.error();
     }
   })());
 });

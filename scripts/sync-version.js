@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..');
 const version=require(path.join(root,'package.json')).version;
 const checkOnly=process.argv.includes('--check');
 const files=[
-  '.env.example','admin.css','admin.html','app.html',
+  '.env.example','admin.css','admin.html','app.html','app.js',
   'forgot-password.html','index.html','manifest.webmanifest','not-found.html','pwa.js',
   'report.html','report.js','reset-password.html','service-worker.js','style.css','verify-email.html',
   'README.md','PROJECT.md'
@@ -16,7 +16,7 @@ let changed=[];
 for(const file of files){
   const target=path.join(root,file);
   const source=fs.readFileSync(target,'utf8');
-  const next=source.replace(/\b\d+\.\d+\.\d+\b/g,version);
+  const next=source.replace(/(?<!\d)\d+\.\d+\.\d+(?!\d)/g,version);
   if(next!==source){
     changed.push(file);
     if(!checkOnly)fs.writeFileSync(target,next,'utf8');

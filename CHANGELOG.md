@@ -4,6 +4,16 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-27
 
+### V17.2.1 kalite ve güvenilirlik düzeltmeleri
+
+- Arıza analitiği sorguları hata katmanına bağlandı; boş veri sonuçları güvenli varsayılanlarla gösterilir.
+- MTBF, makine toplam saatlerinin tekrar tekrar toplanması yerine dönem içindeki gerçek sayaç farkından hesaplanır.
+- Vardiya devir kayıtları açık arıza, iş emri, geciken bakım ve kritik olay anlık görüntülerini saklar.
+- Mobil hızlı menü dinamik seçeneklerden etkilenmeden düğmenin gerçek metnini ve doğru eylemini gösterir.
+- Sürümlü statik dosyalar uzun süreli immutable önbelleğe, service worker kaynakları cache-first akışına geçirildi.
+- Form etiketlerine dinamik `for`/`id` ilişkisi ve başlıklı ikon düğmelerine erişilebilir ad eklendi.
+- Hatalı hesaplama girişinden sonra WhatsApp bağlantısında önceki geçerli sonucun kalması engellendi.
+
 ### Profesyonel CMMS bağlantılı operasyon genişletmesi
 
 - Makina sayaç geçmişi; çalışma saati, çevrim, kilometre, üretim ve özel sayaç tipleriyle firma kapsamında eklendi.

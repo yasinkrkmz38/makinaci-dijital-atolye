@@ -26,6 +26,11 @@ requireAll(server,[
   "app.post('/api/reports/:parentType/:id/signatures'","app.post('/api/push/subscribe'",
   "app.get('/api/health'","storage.health()","mailConfigured()","push=VAPID_PUBLIC_KEY&&VAPID_PRIVATE_KEY"
 ],'Operasyon backend değişmezi eksik');
+requireAll(server,[
+  "app.get('/api/analytics/faults',auth,companyCtx,async(req,res,next)=>{try{",
+  'WITH meter_hours AS','NULLIF(fs.total_faults,0)',
+  'CACHEABLE_UI_ASSETS','max-age=31536000, immutable'
+],'Analitik ve sürümlü statik dosya değişmezi eksik');
 
 requireAll(migration1,['maintenance_templates','checklist_items','part_usages','work_order_events','work_time_entries','company_invitations','push_subscriptions','diagnosis_trees'],'Ana migration eksik');
 requireAll(migration2,['CREATE UNIQUE INDEX idx_maintenance_template_open','report_signatures','client_request_id','logo_attachment_id'],'Operasyon migration eksik');
@@ -34,11 +39,13 @@ for(const system of ['motor','bearing','hydraulic','pneumatic','cnc','electrical
 
 if(/\b(?:prompt|confirm)\s*\(/.test(app+admin))throw Error('Native prompt/confirm kullanımı kaldı');
 requireAll(app,['confirmAction(','promptAction(','loadMoreList(','answerDiagnosis(','saveDiagnosis()','setWorkMine(','signatureModal(','openQrScanner('],'Operasyon UI akışı eksik');
+requireAll(app,['handoverSnapshot={','open_items:handoverOpenItems()','critical_events:handoverCriticalEvents()'],'Vardiya devir anlık görüntüsü eksik');
 requireAll(offline,['\\/api\\/faults','\\/measurements','\\/comments','\\/api\\/checklists','X-Idempotency-Key'],'Offline güvenli kuyruk eksik');
 const partMetadataRoute=server.split(/\r?\n/).find(line=>line.startsWith("app.put('/api/parts/:id'"))||'';
 if(!partMetadataRoute||/(?:SET|,)\s*quantity\s*=/i.test(partMetadataRoute))throw Error('Stok kartı metadata güncellemesi miktarı değiştiremez');
 requireAll(storage,['PutObjectCommand','GetObjectCommand','DeleteObjectCommand','HeadBucketCommand','STORAGE_BUCKET'],'Object storage eksik');
 if(!worker.includes("if(url.pathname==='/app'||url.pathname.startsWith('/app/'))"))throw Error('Service worker public sayfaları /app fallback ile bozmamalı');
+requireAll(worker,['const cached=await caches.match(request)','if(cached)return cached','const response=await fetch(request)'],'Service worker statik dosyaları cache-first sunmalı');
 if(!server.includes("const APP_VERSION=require('./package.json').version"))throw Error('Sürümün runtime kaynağı package.json olmalı');
 
 console.log('Operasyon, bakım, stok, teşhis, offline, bildirim ve storage değişmezleri başarılı.');

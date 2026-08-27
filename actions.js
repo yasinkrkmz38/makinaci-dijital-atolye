@@ -1,6 +1,7 @@
 'use strict';
 (function(){
   const attributes=['onclick','onchange','oninput','onfocus','onsubmit'];
+  let generatedControlId=0;
   function split(source,separator){
     const parts=[];let current='',quote='',escaped=false,depth=0;
     for(const char of String(source||'')){
@@ -47,7 +48,8 @@
       catch(error){console.error('UI action:',error)}
     });
   }
-  function scan(root){if(root.nodeType!==1&&root.nodeType!==9)return;const elements=root.nodeType===1?[root,...root.querySelectorAll('*')]:[...root.querySelectorAll('*')];for(const element of elements)for(const attribute of attributes)if(element.hasAttribute?.(attribute))bind(element,attribute)}
+  function associateLabels(root){const labels=root.matches?.('label')?[root,...root.querySelectorAll('label')]:[...root.querySelectorAll('label')];for(const label of labels){if(label.htmlFor)continue;const nested=label.querySelector('input,select,textarea'),sibling=label.nextElementSibling?.matches?.('input,select,textarea')?label.nextElementSibling:null,field=label.parentElement?.querySelector?.('input,select,textarea'),control=nested||sibling||field;if(!control)continue;if(!control.id)control.id=`dm-control-${++generatedControlId}`;label.htmlFor=control.id}}
+  function scan(root){if(root.nodeType!==1&&root.nodeType!==9)return;associateLabels(root);const elements=root.nodeType===1?[root,...root.querySelectorAll('*')]:[...root.querySelectorAll('*')];for(const element of elements){if(element.matches?.('button')&&!element.getAttribute('aria-label')&&element.title)element.setAttribute('aria-label',element.title);for(const attribute of attributes)if(element.hasAttribute?.(attribute))bind(element,attribute)}}
   function safe(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
   function dialog({title,message,input=false,value='',confirmLabel='Onayla'}){return new Promise(resolve=>{const overlay=document.getElementById('modal')||document.getElementById('adminModal'),card=document.getElementById('modalCard')||document.getElementById('adminModalCard');if(!overlay||!card){resolve(input?null:false);return}card.innerHTML=`<div class="modalHead"><div><span class="badge">ONAY</span><h2>${safe(title)}</h2><p>${safe(message)}</p></div></div>${input?`<div class="field"><label>Değer</label><input data-dialog-input value="${safe(value)}"></div>`:''}<div class="heroBtns"><button class="ghost" data-dialog-cancel>Vazgeç</button><button class="primary" data-dialog-confirm>${safe(confirmLabel)}</button></div>`;overlay.classList.remove('hide');document.body.style.overflow='hidden';const finish=result=>{overlay.classList.add('hide');card.innerHTML='';document.body.style.overflow='';resolve(result)},field=card.querySelector('[data-dialog-input]');card.querySelector('[data-dialog-cancel]').addEventListener('click',()=>finish(input?null:false));card.querySelector('[data-dialog-confirm]').addEventListener('click',()=>finish(input?field.value:true));if(field){field.focus();field.select();field.addEventListener('keydown',event=>{if(event.key==='Enter')finish(field.value)})}})}
   window.confirmAction=(message,title='İşlemi onayla')=>dialog({title,message,confirmLabel:'Onayla'});

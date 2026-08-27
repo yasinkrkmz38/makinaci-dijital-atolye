@@ -1,4 +1,4 @@
-# Dijital Makinacı V17.2.0
+# Dijital Makinacı V17.2.1
 
 Dijital Makinacı; makine parkı, bakım, arıza, iş emri, ölçüm ve yedek parça süreçlerini tek çalışma alanında yöneten çok firmalı bir CMMS uygulamasıdır.
 
