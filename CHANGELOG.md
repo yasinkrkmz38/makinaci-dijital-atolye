@@ -4,6 +4,15 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-28
 
+### V17.4.1 Hesabım mobil kullanılabilirlik düzenlemesi
+
+- Hesabım, güvenlik ve aktif oturum kartları için 16 piksel bölüm ritmi ve 18 piksel kart iç boşluğu tanımlandı.
+- E-posta, MFA, kurtarma kodu, push bildirimi ve oturum kapatma aksiyonları ortak 50 piksel mobil buton sistemine geçirildi.
+- Cihaz bildirimi açıklaması açık mavi, ikonlu ve dengeli bir bilgi bandına dönüştürüldü.
+- Aktif oturum kartları cihaz adı, “Bu cihaz” etiketi, IP/son kullanım/MFA metası ve ayrılmış aksiyon alanıyla yeniden düzenlendi.
+- Toplu oturum kapatma düğmesi 360 pikselde kendi tam genişlikli satırına, daha geniş mobil ekranlarda kompakt satıra yerleştirildi.
+- Hesabım sayfasının alt boşluğu güvenli alan ve sabit alt navigasyon yüksekliği dikkate alınarak ayarlandı.
+
 ### V17.4.0 masaüstü arayüz yenilemesi
 
 - Mobil arayüzün lacivert kabuk, açık çalışma alanı, beyaz kart ve mavi vurgu dili masaüstü uygulamaya taşındı.

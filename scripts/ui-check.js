@@ -31,7 +31,9 @@ if(!css.includes('safe-area-inset-bottom'))throw Error('Mobil safe-area desteği
 if(!css.includes('.mobileNav'))throw Error('Mobil alt navigasyon stili eksik');
 if(!css.includes('.mobileMoreGrid')||!app.includes('data-mobile-page="account"')||!app.includes('data-mobile-icon="machine"'))throw Error('Mobil hızlı menü ve beşli alt navigasyon eksik');
 for(const component of ['mobileQuickTools','mobileMaintenanceSummary','mobileFlowSteps','mobileSkeletonList','setupMobileForm'])if(!app.includes(component))throw Error(`Mobil UI bileşeni eksik: ${component}`);
+for(const component of ['accountActions','accountButtonPrimary','accountInfoBanner','sessionTitleRow','sessionMeta','sessionActions'])if(!app.includes(component))throw Error(`Hesabım mobil bileşeni eksik: ${component}`);
 if(!css.includes('overflow-x:hidden')||!css.includes('min-height:44px'))throw Error('Mobil taşma ve dokunmatik hedef koruması eksik');
+if(!css.includes('--account-section-gap:16px')||!css.includes('--account-control-height:50px')||!css.includes('padding-bottom:calc(78px + env(safe-area-inset-bottom) + 24px)'))throw Error('Hesabım mobil spacing ve alt navigasyon koruması eksik');
 if(!siteCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))')||!siteCss.includes('Mobile public experience'))throw Error('Public mobil ana sayfa ve araç grid katmanı eksik');
 if(!css.includes('DESKTOP PRO UI')||(!css.includes('min-width:901px')&&!css.includes('min-width: 901px')))throw Error('Mobil tasarım dilini kullanan masaüstü UI katmanı eksik');
 if(!css.includes('backdrop-filter:blur(22px)')||!css.includes('--dp-radius:20px'))throw Error('Masaüstü cam yüzey ve kart tasarım değişkenleri eksik');
