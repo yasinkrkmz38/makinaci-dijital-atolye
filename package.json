@@ -1,6 +1,6 @@
 {
   "name": "dijitalmakinaci-v17-2-pro-cmms",
-  "version": "17.3.3",
+  "version": "17.4.0",
   "private": true,
   "scripts": {
     "start": "node start.js",

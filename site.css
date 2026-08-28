@@ -43,3 +43,53 @@
 @media(max-width:380px){
   .siteHero h1{font-size:29px}.featureGrid,.toolGrid{gap:7px}.featureGrid article,.toolGrid a{padding:12px}.siteActions{grid-template-columns:1fr}
 }
+
+/* Desktop public experience — mobile tasarım diliyle eşlenmiş */
+@media(min-width:801px){
+  :root{--bg:#edf2f5;--panel:#fff;--line:#d7e0e6;--text:#17242e;--muted:#6f7e89;--green:#2d6cdf;--shadow:0 15px 42px rgba(23,43,58,.09)}
+  body{background:#edf2f5;color:#17242e}
+  .siteHeader{position:sticky;top:0;z-index:40;height:70px;max-width:none;padding-left:max(24px,calc((100vw - 1180px)/2));padding-right:max(24px,calc((100vw - 1180px)/2));border-bottom:1px solid #283e4e;background:#0f2231;box-shadow:0 8px 25px rgba(11,28,42,.13)}
+  .siteBrand{color:#fff;font-weight:850}
+  .siteHeader nav a{color:#aebdc7}
+  .siteHeader nav a:hover{color:#fff}
+  .siteLogin,.sitePrimary{min-height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:11px;background:#2d6cdf!important;color:#fff!important;box-shadow:0 7px 18px rgba(45,108,223,.18)}
+  .siteHero{min-height:590px;margin-top:24px;margin-bottom:34px;padding:64px 56px;border:1px solid #294354;border-radius:28px;background:#102838;color:#fff;box-shadow:0 18px 44px rgba(16,37,52,.15);overflow:hidden;position:relative}
+  .siteHero:after{content:"";position:absolute;right:-120px;top:-150px;width:430px;height:430px;border:1px solid rgba(126,174,231,.14);border-radius:50%;box-shadow:0 0 0 60px rgba(83,137,191,.07),0 0 0 120px rgba(83,137,191,.035);pointer-events:none}
+  .siteHero>div,.siteMetric{position:relative;z-index:1}
+  .siteBadge,.siteSectionHead span,.siteCta span{color:#9ec4ff}
+  .siteHero h1{color:#fff}
+  .siteHero h1 em{color:#86b5ff}
+  .siteHero p{color:#b9c8d2}
+  .siteGhost{min-height:44px;display:inline-flex;align-items:center;border-color:#496375;background:#183548;color:#f2f7fa}
+  .siteMetric{border-color:#3b5567;background:#173347;box-shadow:none}
+  .siteMetric span,.siteMetric small{color:#afc1cd}
+  .siteMetric b{color:#8bb8ff}
+  .siteSection{padding-top:62px;padding-bottom:62px}
+  .siteSectionHead h2{color:#17242e}
+  .featureGrid article,.toolGrid a,.articleGrid article{border-color:#d7e0e6;background:#fff;color:#17242e;box-shadow:0 9px 25px rgba(25,47,63,.055);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+  .featureGrid article:hover,.toolGrid a:hover,.articleGrid article:hover{transform:translateY(-3px);border-color:#b9cbe5;box-shadow:0 15px 31px rgba(25,47,63,.09)}
+  .featureGrid article>b,.toolGrid a>b,.articleGrid a{color:#245fc7}
+  .featureGrid p,.articleGrid p,.toolGrid span,.siteMuted{color:#6f7e89}
+  .siteCta{border-color:#294354;background:#102838;color:#fff;box-shadow:0 16px 38px rgba(14,34,48,.14)}
+  .siteCta h2{color:#fff}
+  footer{border-top-color:#d5dee4;color:#71808b}
+  footer a{color:#60717d}
+  footer a:hover{color:#245fc7}
+  .calcShell,.articleShell,.libraryShell{margin-top:45px}
+  .libraryShell>h1,.calcShell>h1,.articleShell>h1{color:#17242e}
+  .siteLead,.articleMeta{color:#62737f}
+  .breadcrumb{color:#71808b}
+  .breadcrumb a{color:#245fc7}
+  .calcCard,.articleBody{border-color:#d7e0e6;background:#fff;color:#17242e;box-shadow:0 12px 34px rgba(23,45,61,.07)}
+  .calcCard label{color:#53646f}
+  .calcCard input,.calcCard select{min-height:50px;border-color:#cbd6de;background:#f8fafb;color:#17242e;font-size:16px}
+  .calcCard input:focus,.calcCard select:focus{outline:0;border-color:#5d8fdf;background:#fff;box-shadow:0 0 0 4px rgba(45,108,223,.11)}
+  .calcCard button,.shareRow button{min-height:46px;background:#2d6cdf;color:#fff}
+  .calcResult{border:1px solid #c8d8ef;border-left:4px solid #2d6cdf;background:#edf4ff;color:#214f9c}
+  .calcResult.error{border-color:#e9c4bd;border-left-color:#c54b3e;background:#fff4f2;color:#a83e32}
+  .seoSection+.seoSection,.articleLinks{border-color:#e1e7eb}
+  .seoSection p,.seoList{color:#53646f}
+  .faqList details{border-color:#d7e0e6;background:#f7f9fa}
+  .faqList summary{color:#1d2b35}
+  .seoNotice,.seoSource{border-left-color:#2d6cdf;background:#edf4ff;color:#40515d}
+}

@@ -2,6 +2,18 @@
 
 Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kaydeder.
 
+## 2026-08-28
+
+### V17.4.0 masaüstü arayüz yenilemesi
+
+- Mobil arayüzün lacivert kabuk, açık çalışma alanı, beyaz kart ve mavi vurgu dili masaüstü uygulamaya taşındı.
+- Kontrol merkezi; geniş ekran hero alanı, altı sütunlu hızlı araçlar ve sade KPI kartlarıyla yeniden düzenlendi.
+- Makine, bakım, iş emri, stok, teknik araçlar ve hesap ekranlarının form, tablo, filtre, modal ve durum bileşenleri ortak açık yüzey sistemine geçirildi.
+- Giriş ve kayıt ekranları aynı tasarım diliyle lacivert sunum alanı ve odaklı beyaz işlem kartı düzenine uyarlandı.
+- Admin Center; lacivert yönetim kabuğu, açık veri alanları ve mavi aktif durumlarla ana uygulamayla eşlendi.
+- Public site, hesaplama sayfaları ve teknik makalelerin masaüstü yüzeyleri aynı görsel sistemle bütünleştirildi.
+- 1280, 1440 ve 1920 piksel masaüstü genişlikleri ile 390 piksel mobil gerileme görünümü taşma ve kırılım açısından doğrulandı.
+
 ## 2026-08-27
 
 ### V17.3.3 mobil arayüz yenilemesi

@@ -35,6 +35,9 @@ if(!css.includes('overflow-x:hidden')||!css.includes('min-height:44px'))throw Er
 if(!siteCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))')||!siteCss.includes('Mobile public experience'))throw Error('Public mobil ana sayfa ve araç grid katmanı eksik');
 if(!css.includes('DESKTOP PRO UI')||(!css.includes('min-width:901px')&&!css.includes('min-width: 901px')))throw Error('Mobil tasarım dilini kullanan masaüstü UI katmanı eksik');
 if(!css.includes('backdrop-filter:blur(22px)')||!css.includes('--dp-radius:20px'))throw Error('Masaüstü cam yüzey ve kart tasarım değişkenleri eksik');
+if(!css.includes('DESKTOP LIGHT INDUSTRIAL EXPERIENCE')||!css.includes('--dp-green:#2d6cdf'))throw Error('Açık yüzeyli masaüstü ürün tasarım katmanı eksik');
+if(!siteCss.includes('Desktop public experience'))throw Error('Public masaüstü tasarım katmanı eksik');
+if(!read('admin.css').includes('Desktop Admin Center'))throw Error('Admin Center masaüstü tasarım katmanı eksik');
 if(!pwa.includes("addEventListener('controllerchange'")||!pwa.includes('location.reload()'))throw Error('Service worker sürüm geçişi otomatik yenileme koruması eksik');
 if(admin.includes("location.href='/';return")||!admin.includes("'Platform yetkisi gerekli'")||!admin.includes("'MFA kurulumu gerekli'")||!admin.includes("'Çıkış yap ve yeniden gir'")||!admin.includes('adminRelogin'))throw Error('Admin Center yetki/MFA kapısı açıklayıcı olmalı ve MFA doğrulamalı yeniden giriş sunmalı');
 if(!actions.includes('function associateLabels(')||!actions.includes('label.htmlFor=control.id'))throw Error('Dinamik uygulama for/id etiket ilişkisi kurmalı');
