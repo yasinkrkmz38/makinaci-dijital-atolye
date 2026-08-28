@@ -7,7 +7,7 @@
 - Canlı adres: https://dijitalmakinaci.pro/
 - GitHub: https://github.com/yasinkrkmz38/makinaci-dijital-atolye
 - Ana dal: `main`
-- Uygulama sürümü: `17.2.1`
+- Uygulama sürümü: `17.3.3`
 - Dağıtım: Render
 - Çalışma zamanı: Node.js 20+
 - Veritabanı: PostgreSQL
@@ -31,7 +31,7 @@ Temel alanlar:
 ## Mimari kararlar
 
 - Canonical frontend dosyaları sürüm önekleri taşımaz.
-- Sürümün tek kaynağı `package.json` içindeki `17.2.1` değeridir; runtime varsayılanları bununla eşleşir.
+- Sürümün tek kaynağı `package.json` içindeki `17.3.3` değeridir; runtime varsayılanları bununla eşleşir.
 - PostgreSQL değişiklikleri numaralı migration dosyalarıyla transaction içinde uygulanır.
 - Production sırrı ve servis anahtarları yalnızca ortam değişkenlerinde tutulur.
 - Dosya ekleri için hedef S3 uyumlu object storage'dır; veritabanı yalnızca metadata taşır.

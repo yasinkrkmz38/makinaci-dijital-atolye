@@ -4,6 +4,19 @@ Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kayd
 
 ## 2026-08-27
 
+### V17.3.3 mobil arayüz yenilemesi
+
+- 360–430 piksel telefonlar için açık yüzeyli, lacivert kabuklu ve kontrollü mavi vurgulu yeni mobil tasarım sistemi oluşturuldu.
+- Uygulama başlığı 62 piksel sticky header'a; ana navigasyon Ana, Araçlar, Bakım, Arızalar ve Hesabım öğeli bottom navigation'a dönüştürüldü.
+- Firma seçimi, global arama ve ikincil çalışma alanları erişilebilir bir “Daha Fazla” bottom-sheet içinde toplandı.
+- Mobil ana ekrana altı adet iki kolonlu hızlı araç kartı; bakım ekranına Bugün, Geciken, Yaklaşan ve Makine özetleri eklendi.
+- Arıza teşhis formuna dokunulabilir adım göstergeleri, uzun oluşturma formlarına kompakt aç/kapat davranışı eklendi.
+- Makine kartlarının tamamı klavye ve dokunmayla açılabilir hale getirildi; 44 piksel dokunma hedefleri ve yatay taşma koruması güçlendirildi.
+- Login, kayıt, şifre yenileme ve hesap güvenliği alanlarına şifre göster/gizle; giriş düğmesine loading durumu eklendi.
+- Giriş/kayıt sekmelerine ayrı başlık ve eylem metinleri eklendi; mobil Admin Center açık yüzey, lacivert kabuk ve mavi vurgu diline taşındı.
+- Skeleton yükleme, sade toast, responsive bottom-sheet modal ve açık sonuç kartı bileşenleri eklendi.
+- Public ana site ve SEO hesaplama sayfaları da iki kolonlu araç grid'i, kompakt hero, responsive form ve tablo yüzeyleriyle yenilendi.
+
 ### V17.2.1 kalite ve güvenilirlik düzeltmeleri
 
 - Arıza analitiği sorguları hata katmanına bağlandı; boş veri sonuçları güvenli varsayılanlarla gösterilir.

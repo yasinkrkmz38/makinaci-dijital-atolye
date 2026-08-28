@@ -10,6 +10,7 @@ const pwa=read('pwa.js');
 const admin=read('admin.js');
 const actions=read('actions.js');
 const site=read('site.js');
+const siteCss=read('site.css');
 const css=read('style.css')+read('mobile.css');
 
 const pages=['dashboard','machines','maintenance','calendar','workorders','diagnosis','analytics','parts','tools','library','team','account'];
@@ -17,7 +18,7 @@ for(const page of pages){
   if(!html.includes(`id="${page}"`))throw Error(`Eksik UI sayfası: ${page}`);
   if(!html.includes(`data-page="${page}"`)&&!html.includes(`data-mobile-page="${page}"`)&&!app.includes(`go('${page}')`))throw Error(`Navigasyon bağlantısı eksik: ${page}`);
 }
-for(const id of ['authGate','loginTab','registerTab','authEmail','authPassword','app','mobileNav','mobileMore','machineGrid','maintenanceList','toolCards']){
+for(const id of ['authGate','authTitle','authSubmit','loginTab','registerTab','authEmail','authPassword','app','mobileNav','mobileMore','machineGrid','maintenanceList','toolCards']){
   if(!html.includes(`id="${id}"`))throw Error(`Eksik kritik UI elemanı: ${id}`);
 }
 if(/id="(?:bootSplash|loginTransition)"/.test(html))throw Error('Blocking login/boot overlay HTML içinde bulunamaz');
@@ -28,12 +29,16 @@ if(!app.includes('bindAuthControls()'))throw Error('Giriş kontrolleri programat
 for(const width of ['900px','620px'])if(!css.includes(`max-width:${width}`)&&!css.includes(`max-width: ${width}`))throw Error(`Responsive breakpoint eksik: ${width}`);
 if(!css.includes('safe-area-inset-bottom'))throw Error('Mobil safe-area desteği eksik');
 if(!css.includes('.mobileNav'))throw Error('Mobil alt navigasyon stili eksik');
-if(!css.includes('.mobileMore button:after{content:none!important;display:none!important}')||!css.includes('font-size:13px!important'))throw Error('Mobil hızlı menü kendi metin ve eylem sırasını korumalı');
+if(!css.includes('.mobileMoreGrid')||!app.includes('data-mobile-page="account"')||!app.includes('data-mobile-icon="machine"'))throw Error('Mobil hızlı menü ve beşli alt navigasyon eksik');
+for(const component of ['mobileQuickTools','mobileMaintenanceSummary','mobileFlowSteps','mobileSkeletonList','setupMobileForm'])if(!app.includes(component))throw Error(`Mobil UI bileşeni eksik: ${component}`);
+if(!css.includes('overflow-x:hidden')||!css.includes('min-height:44px'))throw Error('Mobil taşma ve dokunmatik hedef koruması eksik');
+if(!siteCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))')||!siteCss.includes('Mobile public experience'))throw Error('Public mobil ana sayfa ve araç grid katmanı eksik');
 if(!css.includes('DESKTOP PRO UI')||(!css.includes('min-width:901px')&&!css.includes('min-width: 901px')))throw Error('Mobil tasarım dilini kullanan masaüstü UI katmanı eksik');
 if(!css.includes('backdrop-filter:blur(22px)')||!css.includes('--dp-radius:20px'))throw Error('Masaüstü cam yüzey ve kart tasarım değişkenleri eksik');
 if(!pwa.includes("addEventListener('controllerchange'")||!pwa.includes('location.reload()'))throw Error('Service worker sürüm geçişi otomatik yenileme koruması eksik');
 if(admin.includes("location.href='/';return")||!admin.includes("'Platform yetkisi gerekli'")||!admin.includes("'MFA kurulumu gerekli'")||!admin.includes("'Çıkış yap ve yeniden gir'")||!admin.includes('adminRelogin'))throw Error('Admin Center yetki/MFA kapısı açıklayıcı olmalı ve MFA doğrulamalı yeniden giriş sunmalı');
 if(!actions.includes('function associateLabels(')||!actions.includes('label.htmlFor=control.id'))throw Error('Dinamik uygulama for/id etiket ilişkisi kurmalı');
+if(!actions.includes('enhancePasswordInputs')||!actions.includes("aria-label','Şifreyi göster"))throw Error('Şifre göster/gizle erişilebilir kontrolü eksik');
 if(!site.includes('resetInvalidCalculatorShare')||!site.includes("output.classList.contains('error')"))throw Error('Geçersiz hesap sonucu eski paylaşım metnini korumamalı');
 
 console.log(`UI kontrolü başarılı: ${pages.length} modül, login, PWA ve responsive navigasyon doğrulandı.`);
