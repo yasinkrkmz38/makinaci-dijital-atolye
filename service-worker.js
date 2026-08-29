@@ -1,15 +1,15 @@
 'use strict';
 
-const APP_VERSION='17.4.1';
+const APP_VERSION='17.5.0';
 const CACHE_NAME=`dm-app-${APP_VERSION}`;
 const APP_SHELL=[
   '/app',
-  '/actions.js?v=17.4.1',
-  '/offline.js?v=17.4.1',
-  '/app.js?v=17.4.1',
-  '/style.css?v=17.4.1',
-  '/mobile.css?v=17.4.1',
-  '/manifest.webmanifest?v=17.4.1',
+  '/actions.js?v=17.5.0',
+  '/offline.js?v=17.5.0',
+  '/app.js?v=17.5.0',
+  '/style.css?v=17.5.0',
+  '/mobile.css?v=17.5.0',
+  '/manifest.webmanifest?v=17.5.0',
   '/forgot-password.html',
   '/reset-password.html',
   '/verify-email.html',

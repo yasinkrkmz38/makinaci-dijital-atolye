@@ -14,7 +14,7 @@ const storage=require('./storage');
 const webpush=require('web-push');
 const {stockQuantityAfter,sessionStateValid,canUseUnverifiedSession}=require('./domain');
 const {REVISION_DATE,calculatorSeo,seoArticles,articleBodyText,articleSummary}=require('./seo-content');
-const {renderCalculatorPage,renderArticlePage,renderLibraryPage,renderCalculatorIndexPage}=require('./seo-render');
+const {renderCalculatorPage,renderArticlePage,renderLibraryPage,renderCalculatorIndexPage,renderPublicInfoPage,PUBLIC_INFO_SLUGS}=require('./seo-render');
 
 const app=express();
 const PORT=Number(process.env.PORT)||10000;
@@ -83,6 +83,7 @@ app.get(['/hesaplamalar','/hesaplamalar/'],(req,res)=>{const nonce=seoNonce();re
 app.get('/hesaplamalar/:slug',(req,res)=>{const config=calculatorSeo[req.params.slug];if(!config){res.status(404);return rootUiFile(res,'not-found.html','html')}const nonce=seoNonce();return sendSeoPage(res,renderCalculatorPage(config,{baseUrl:publicBaseUrl(),nonce}),nonce)});
 app.get(['/teknik','/teknik/'],async(req,res)=>{let rows=[];try{rows=(await q(`SELECT slug,title,category,summary,source,standard,revision_date,updated_at FROM knowledge_articles WHERE is_published=true ORDER BY updated_at DESC LIMIT 50`)).rows}catch(error){console.warn('Public teknik kütüphane DB içeriği geçici olarak alınamadı:',error.message)}const articles=mergedPublicArticles(rows,50),nonce=seoNonce();return sendSeoPage(res,renderLibraryPage(articles,{baseUrl:publicBaseUrl(),nonce}),nonce)});
 app.get('/teknik/:slug',async(req,res,next)=>{try{const staticArticle=seoArticles.find(article=>article.slug===req.params.slug),article=staticArticle||(await q(`SELECT slug,title,category,summary,body,source,standard,revision_date,related_tools,related_systems,updated_at FROM knowledge_articles WHERE slug=$1 AND is_published=true`,[req.params.slug])).rows[0];if(!article){res.status(404);return rootUiFile(res,'not-found.html','html')}const nonce=seoNonce();return sendSeoPage(res,renderArticlePage(article,{baseUrl:publicBaseUrl(),nonce}),nonce)}catch(e){next(e)}});
+app.get(PUBLIC_INFO_SLUGS.map(slug=>`/${slug}`),(req,res)=>{const slug=req.path.slice(1),nonce=seoNonce();return sendSeoPage(res,renderPublicInfoPage(slug,{baseUrl:publicBaseUrl(),nonce}),nonce)});
 app.get('/manifest.webmanifest',(req,res)=>rootUiFile(res,'manifest.webmanifest','application/manifest+json'));
 app.get('/service-worker.js',(req,res)=>{res.setHeader('Service-Worker-Allowed','/');return rootUiFile(res,'service-worker.js','application/javascript')});
 app.get('/icon-192.png',(req,res)=>rootUiFile(res,'icon-192.png','image/png'));
@@ -498,6 +499,7 @@ app.get('/sitemap.xml',async(req,res)=>{
     {path:'/',lastmod:REVISION_DATE,priority:'1.0',changefreq:'weekly'},
     {path:'/hesaplamalar',lastmod:REVISION_DATE,priority:'0.9',changefreq:'monthly'},
     {path:'/teknik',lastmod:REVISION_DATE,priority:'0.9',changefreq:'weekly'},
+    ...PUBLIC_INFO_SLUGS.map(slug=>({path:`/${slug}`,lastmod:REVISION_DATE,priority:'0.4',changefreq:'yearly'})),
     ...Object.values(calculatorSeo).map(tool=>({path:`/hesaplamalar/${encodeURIComponent(tool.slug)}`,lastmod:REVISION_DATE,priority:'0.8',changefreq:'monthly'})),
     ...seoArticles.map(article=>({path:`/teknik/${encodeURIComponent(article.slug)}`,lastmod:article.revisionDate,priority:'0.8',changefreq:'monthly'}))
   ];

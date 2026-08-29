@@ -2,6 +2,20 @@
 
 Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kaydeder.
 
+## 2026-08-29
+
+### V17.5.0 public site ve dönüşüm deneyimi
+
+- Public ana sayfa; güçlü hero, müşteri verisi içermeyen ürün önizlemesi, sekiz CMMS modülü, kullanıcı grupları, çalışma akışı, fayda ve güven alanlarıyla yeniden tasarlandı.
+- Mobil header; erişilebilir hamburger menü, 44 piksel dokunma hedefleri, body scroll kilidi ve safe-area desteğiyle 360–430 piksel telefonlara uyarlandı.
+- Tablet ve masaüstü düzenleri 1220 piksel ortak içerik genişliği, çok kolonlu kartlar ve dengeli bilgi yoğunluğuyla yenilendi.
+- Teknik Kütüphane arama, sekiz kategori filtresi, sonuç sayacı ve gerçek boş sonuç durumuyla kullanılabilir hale getirildi.
+- Hesaplama dizini kategori etiketli, açıklamalı ve ortak araç kartı yapısına geçirildi.
+- Gizlilik, Kullanım Koşulları, Çerez ve İletişim sayfaları gerçek sistem davranışlarına göre SSR public route olarak eklendi.
+- Kurumsal footer tüm public sayfalarda ortaklaştırıldı; UTM parametreleri auth bağlantılarına taşınır ve CTA olayları sağlayıcı bağımsız event hook üzerinden yayınlanır.
+- Ana sayfa ve public bilgi sayfalarının metadata ile yapılandırılmış verileri genişletildi; kayıt CTA'ları doğrudan hesap oluşturma sekmesini açar.
+- Otomatik testler ve gerçek tarayıcı QA; 360, 375, 390, 393, 412, 430, 768, 1366, 1440 ve 1920 piksel genişliklerde yatay taşma olmadan tamamlandı.
+
 ## 2026-08-28
 
 ### V17.4.1 Hesabım mobil kullanılabilirlik düzenlemesi

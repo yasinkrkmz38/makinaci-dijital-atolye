@@ -1,6 +1,6 @@
 'use strict';
 
-const REVISION_DATE='2026-08-23';
+const REVISION_DATE='2026-08-29';
 
 const calculatorSeo={
   'iso-286-tolerans':{

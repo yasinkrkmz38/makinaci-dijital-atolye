@@ -7,14 +7,14 @@
 - Canlı adres: https://dijitalmakinaci.pro/
 - GitHub: https://github.com/yasinkrkmz38/makinaci-dijital-atolye
 - Ana dal: `main`
-- Uygulama sürümü: `17.4.1`
+- Uygulama sürümü: `17.5.0`
 - Dağıtım: Render
 - Çalışma zamanı: Node.js 20+
 - Veritabanı: PostgreSQL
 
 ## Ürün sınırları
 
-Public site `/` altında, giriş gerektiren CMMS `/app` altında çalışır. Platform yönetimi `/admin`, public hesaplamalar `/hesaplamalar/:slug`, teknik içerikler `/teknik/:slug` altındadır.
+Public site `/` altında, giriş gerektiren CMMS `/app` altında çalışır. Platform yönetimi `/admin`, public hesaplamalar `/hesaplamalar/:slug`, teknik içerikler `/teknik/:slug`; gizlilik, koşullar, çerez ve iletişim sayfaları kendi public route'ları altındadır.
 
 Temel alanlar:
 
@@ -31,7 +31,7 @@ Temel alanlar:
 ## Mimari kararlar
 
 - Canonical frontend dosyaları sürüm önekleri taşımaz.
-- Sürümün tek kaynağı `package.json` içindeki `17.4.1` değeridir; runtime varsayılanları bununla eşleşir.
+- Sürümün tek kaynağı `package.json` içindeki `17.5.0` değeridir; runtime varsayılanları bununla eşleşir.
 - PostgreSQL değişiklikleri numaralı migration dosyalarıyla transaction içinde uygulanır.
 - Production sırrı ve servis anahtarları yalnızca ortam değişkenlerinde tutulur.
 - Dosya ekleri için hedef S3 uyumlu object storage'dır; veritabanı yalnızca metadata taşır.
@@ -69,5 +69,7 @@ Production veritabanında DROP, recreate veya toplu DELETE yapılmaz. Migration'
 7. Production `npm run smoke`
 
 ## Güncel çalışma
+
+29 Ağustos 2026 public site sürümü; landing sayfasını ürün önizlemesi, modül/fayda/güven alanları, hesaplama ve teknik içerik önizlemeleri ile SSS üzerinden mobil, tablet ve masaüstünde ortak responsive sisteme taşır. Teknik Kütüphane aranabilir ve kategori bazlı filtrelenebilir; kurumsal footer ile gizlilik, kullanım koşulları, çerez ve iletişim route'ları aktiftir. UTM parametreleri auth CTA'larına taşınır ve merkezi analytics event hook'u sağlayıcı bağımsızdır.
 
 27 Ağustos 2026 itibarıyla yeni hesaplar kayıt tamamlanır tamamlanmaz normal oturumla uygulamanın bütün modüllerini kullanabilir. E-posta doğrulaması hesabı kullanmanın ön şartı değildir; gerçek doğrulama durumu korunur ve kullanıcı Hesap ve Güvenlik bölümünden istediği zaman doğrulama bağlantısı isteyebilir. Zorunlu doğrulama politika anahtarı özel kurulumlar için korunmuştur, production varsayılanı `false` değeridir. Resend gönderim alan adı Hostinger DNS üzerinde doğrulanmıştır. Admin Center yalnızca `platform_admin` hesabı ve MFA doğrulamalı oturumla açılır; eksik yetki veya MFA durumu artık sessiz yönlendirme yerine açık bir erişim kapısında gösterilir. Var olan ilk yönetici `ADMIN_EMAIL` ile yükseltilebilir; `ADMIN_PASSWORD` yalnızca yeni hesap oluşturulurken gerekir. Mobil uygulamanın yuvarlatılmış kartları, cam yüzeyleri, belirgin aktif durumları ve katmanlı yeşil tonları 901 piksel üzerindeki masaüstü kabuğuna da taşınmıştır; geniş ekran verimliliği için sabit navigasyon ve çok kolonlu yerleşimler korunur. Canonical frontend/public site ayrımı, güvenli auth, periyodik bakım/checklist, stok bağlantılı iş emirleri, ekip davetleri, object storage, bildirim/PWA/offline saha, karar ağacı, public teknik araçlar ve SEO altyapısı `codex/platform-expansion` dalında birlikte test edilmektedir. Ana dala geçiş yalnızca migration denemesi, tarayıcı doğrulaması ve production smoke kapıları tamamlandıktan sonra yapılır.

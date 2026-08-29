@@ -1,4 +1,4 @@
-# Dijital Makinacı V17.4.1
+# Dijital Makinacı V17.5.0
 
 Dijital Makinacı; makine parkı, bakım, arıza, iş emri, ölçüm ve yedek parça süreçlerini tek çalışma alanında yöneten çok firmalı bir CMMS uygulamasıdır.
 
@@ -67,6 +67,7 @@ Eski `v1621-*`, `appstore-v17.css`, `public/` ve `v71/` kopyaları kaldırılmı
 | `/app` | `app.html` | CMMS uygulaması |
 | `/hesaplamalar`, `/hesaplamalar/:slug` | `seo-render.js` | SSR hesaplama dizini ve özgün araç sayfaları |
 | `/teknik`, `/teknik/:slug` | `seo-render.js` | SSR teknik kütüphane ve özgün makaleler |
+| `/gizlilik`, `/kullanim-kosullari`, `/cerezler`, `/iletisim` | `seo-render.js` | SSR kurumsal bilgi ve iletişim sayfaları |
 | `/admin` | `admin.html` | Platform yönetimi |
 | `/api/health` | JSON | DB, e-posta, object storage, push ve migration durumu |
 | `/sitemap.xml`, `/robots.txt` | Dinamik/statik | Arama motoru keşfi |

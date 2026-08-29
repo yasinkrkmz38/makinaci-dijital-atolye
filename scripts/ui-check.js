@@ -34,16 +34,17 @@ for(const component of ['mobileQuickTools','mobileMaintenanceSummary','mobileFlo
 for(const component of ['accountActions','accountButtonPrimary','accountInfoBanner','sessionTitleRow','sessionMeta','sessionActions'])if(!app.includes(component))throw Error(`Hesabım mobil bileşeni eksik: ${component}`);
 if(!css.includes('overflow-x:hidden')||!css.includes('min-height:44px'))throw Error('Mobil taşma ve dokunmatik hedef koruması eksik');
 if(!css.includes('--account-section-gap:16px')||!css.includes('--account-control-height:50px')||!css.includes('padding-bottom:calc(78px + env(safe-area-inset-bottom) + 24px)'))throw Error('Hesabım mobil spacing ve alt navigasyon koruması eksik');
-if(!siteCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))')||!siteCss.includes('Mobile public experience'))throw Error('Public mobil ana sayfa ve araç grid katmanı eksik');
+if(!siteCss.includes('@media(max-width:800px)')||!siteCss.includes('@media(max-width:370px)')||!siteCss.includes('.siteMobileMenu')||!siteCss.includes('env(safe-area-inset-top)'))throw Error('Public mobil responsive navigasyon ve safe-area katmanı eksik');
 if(!css.includes('DESKTOP PRO UI')||(!css.includes('min-width:901px')&&!css.includes('min-width: 901px')))throw Error('Mobil tasarım dilini kullanan masaüstü UI katmanı eksik');
 if(!css.includes('backdrop-filter:blur(22px)')||!css.includes('--dp-radius:20px'))throw Error('Masaüstü cam yüzey ve kart tasarım değişkenleri eksik');
 if(!css.includes('DESKTOP LIGHT INDUSTRIAL EXPERIENCE')||!css.includes('--dp-green:#2d6cdf'))throw Error('Açık yüzeyli masaüstü ürün tasarım katmanı eksik');
-if(!siteCss.includes('Desktop public experience'))throw Error('Public masaüstü tasarım katmanı eksik');
+if(!siteCss.includes('@media(min-width:1440px)')||!siteCss.includes('--content:1220px')||!siteCss.includes('grid-template-columns:repeat(4,minmax(0,1fr))'))throw Error('Public masaüstü içerik genişliği ve çok kolonlu yerleşim eksik');
 if(!read('admin.css').includes('Desktop Admin Center'))throw Error('Admin Center masaüstü tasarım katmanı eksik');
 if(!pwa.includes("addEventListener('controllerchange'")||!pwa.includes('location.reload()'))throw Error('Service worker sürüm geçişi otomatik yenileme koruması eksik');
 if(admin.includes("location.href='/';return")||!admin.includes("'Platform yetkisi gerekli'")||!admin.includes("'MFA kurulumu gerekli'")||!admin.includes("'Çıkış yap ve yeniden gir'")||!admin.includes('adminRelogin'))throw Error('Admin Center yetki/MFA kapısı açıklayıcı olmalı ve MFA doğrulamalı yeniden giriş sunmalı');
 if(!actions.includes('function associateLabels(')||!actions.includes('label.htmlFor=control.id'))throw Error('Dinamik uygulama for/id etiket ilişkisi kurmalı');
 if(!actions.includes('enhancePasswordInputs')||!actions.includes("aria-label','Şifreyi göster"))throw Error('Şifre göster/gizle erişilebilir kontrolü eksik');
 if(!site.includes('resetInvalidCalculatorShare')||!site.includes("output.classList.contains('error')"))throw Error('Geçersiz hesap sonucu eski paylaşım metnini korumamalı');
+for(const behavior of ['initPublicMenu','publicMenuOpen','initLibraryFilters','preserveUtm','initPublicTracking'])if(!site.includes(behavior))throw Error(`Public responsive davranış eksik: ${behavior}`);
 
 console.log(`UI kontrolü başarılı: ${pages.length} modül, login, PWA ve responsive navigasyon doğrulandı.`);

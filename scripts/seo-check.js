@@ -6,7 +6,7 @@ const assert=require('assert/strict');
 const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const {calculatorSeo,seoArticles,articleBodyText}=require('../seo-content');
-const {renderCalculatorPage,renderArticlePage,renderLibraryPage,renderCalculatorIndexPage}=require('../seo-render');
+const {renderCalculatorPage,renderArticlePage,renderLibraryPage,renderCalculatorIndexPage,renderPublicInfoPage,PUBLIC_INFO_SLUGS}=require('../seo-render');
 const baseUrl='https://dijitalmakinaci.pro',nonce='seo-check-nonce';
 const wordCount=value=>String(value||'').trim().split(/\s+/).filter(Boolean).length;
 const calculatorSlugs=Object.keys(calculatorSeo),articleSlugs=seoArticles.map(article=>article.slug);
@@ -46,13 +46,21 @@ for(const article of seoArticles){
 const libraryHtml=renderLibraryPage(seoArticles,{baseUrl,nonce}),calculatorIndexHtml=renderCalculatorIndexPage({baseUrl,nonce});
 assert.ok(libraryHtml.includes('"@type":"CollectionPage"')&&libraryHtml.includes(`"numberOfItems":${seoArticles.length}`),'Teknik kütüphane ItemList şeması eksik');
 assert.ok(calculatorIndexHtml.includes('"@type":"CollectionPage"')&&calculatorIndexHtml.includes('"numberOfItems":5'),'Hesaplama dizini ItemList şeması eksik');
+assert.ok(libraryHtml.includes('id="librarySearch"')&&libraryHtml.includes('data-library-filter="cnc"')&&libraryHtml.includes('data-article-category='),'Teknik kütüphane arama ve kategori filtresi eksik');
+assert.ok(calculatorIndexHtml.includes('toolCategoryIntro')&&calculatorIndexHtml.includes('data-track="calculator_open"'),'Hesaplama dizini kategori ve merkezi event hook işaretlerini içermeli');
+for(const slug of PUBLIC_INFO_SLUGS){
+  const html=renderPublicInfoPage(slug,{baseUrl,nonce});
+  assert.ok(html.includes(`rel="canonical" href="${baseUrl}/${slug}"`)&&html.includes('"@type":"WebPage"')&&html.includes('"@type":"BreadcrumbList"'),`${slug}: public sayfa metadata veya şeması eksik`);
+}
 const unsafe=renderArticlePage({slug:'xss-test',title:'<script>alert(1)</script>',summary:'Güvenli render testi için yeterli teknik açıklama metni.',body:'<img src=x onerror=alert(1)>',source:'test',standard:'test',revision_date:'2026-08-23',related_tools:[],related_systems:[]},{baseUrl,nonce});
 assert.ok(!unsafe.includes('<script>alert(1)</script>')&&!unsafe.includes('<img src=x'),'Dinamik makale HTML kaçışından geçmeli');
 
 const server=read('server.js'),client=read('site.js'),home=read('index.html');
-for(const invariant of ['renderCalculatorPage','renderArticlePage','renderLibraryPage','renderCalculatorIndexPage','mergedPublicArticles','seoArticles.map','s-maxage=21600'])assert.ok(server.includes(invariant),`SSR SEO backend invariant eksik: ${invariant}`);
+for(const invariant of ['renderCalculatorPage','renderArticlePage','renderLibraryPage','renderCalculatorIndexPage','renderPublicInfoPage','PUBLIC_INFO_SLUGS','mergedPublicArticles','seoArticles.map','s-maxage=21600'])assert.ok(server.includes(invariant),`SSR SEO backend invariant eksik: ${invariant}`);
 assert.ok(!server.includes("rootUiFile(res,'calculator.html','html')")&&!server.includes("rootUiFile(res,'article.html','html')"),'SEO sayfaları eski generic HTML dosyasını açmamalı');
 assert.ok(client.includes("dataset.ssrSeo==='true'"),'İstemci SSR metadatasını korumalı');
 assert.ok((home.match(/href="\/teknik\//g)||[]).length>=6&&home.includes('href="/teknik"'),'Ana sayfada taranabilir teknik içerik bağlantıları bulunmalı');
+for(const marker of ['productPreview','featureGrid','personaGrid','processGrid','trustGrid','homeToolGrid','homeFaq','siteFooter'])assert.ok(home.includes(marker),`Landing bileşeni eksik: ${marker}`);
+assert.ok(client.includes('preserveUtm')&&client.includes('dm:public-event')&&client.includes('initHomeSchema'),'UTM, analytics hook veya ana sayfa şeması eksik');
 
 console.log(`SEO kontrolü başarılı: ${calculatorSlugs.length} hesaplama, ${seoArticles.length} teknik rehber, SSR metadata ve yapılandırılmış veri.`);
