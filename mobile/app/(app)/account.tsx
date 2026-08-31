@@ -19,6 +19,7 @@ import {
 import { BackHeader } from "@/components/BackHeader";
 import { EntityRow } from "@/components/EntityRow";
 import { useAppTheme } from "@/theme/tokens";
+import { formatDateTime } from "@/utils/presentation";
 
 type Session = {
   id: string;
@@ -224,7 +225,7 @@ export default function Account() {
             <Card key={session.id}>
               <EntityRow
                 title={session.device_name || "Bilinmeyen cihaz"}
-                subtitle={`${session.ip || "IP yok"} · ${new Date(session.last_seen_at).toLocaleString("tr-TR")}`}
+                subtitle={`${session.ip || "IP yok"} · ${formatDateTime(session.last_seen_at)}`}
                 status={
                   session.current
                     ? "Bu cihaz"

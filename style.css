@@ -1341,6 +1341,14 @@ body{font-size:15px}.eyebrow{font-size:10px}.field label{font-size:12px}.field i
   .mobileNav small{font-size:8px}
 }
 
+/* Brand master logo */
+.brandLogo{width:44px;height:44px;display:block;object-fit:cover;border-radius:12px;flex:0 0 auto}
+.authLogo{display:flex;align-items:center;gap:12px}
+.authLogo .brandLogo{width:58px;height:58px;border-radius:16px}
+.brand>.brandLogo{width:42px;height:42px;border-radius:12px}
+.standaloneBrand{display:flex;align-items:center;gap:10px}
+.standaloneBrand .brandLogo{width:44px;height:44px;border-radius:12px}
+
 .securityPanel,.sessionsPanel{grid-column:1/-1}
 .accountActions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}.accountActions:empty{display:none}.accountButton{display:inline-flex;min-height:48px;align-items:center;justify-content:center;padding:0 16px;border-radius:11px;font-size:12px;font-weight:800;line-height:1.2;white-space:nowrap}.accountButton.accountButtonPrimary{border-color:#2d6cdf;background:#2d6cdf;color:#fff}.accountButton.accountButtonSecondary{border-color:#ccd7df;background:#f7f9fa;color:#40515d}.accountButton.accountButtonDangerSecondary{border-color:#e4c7c0;background:#fff7f5;color:#9f493d}.accountFeedback:empty{display:none}.securityPush{display:grid;gap:14px;margin-top:16px}.accountInfoBanner{display:flex;align-items:center;gap:10px;margin:0;line-height:1.5}.accountInfoIcon{display:grid;width:26px;height:26px;flex:0 0 26px;place-items:center;border-radius:8px}.securityPush>.accountButton{justify-self:start}.sessionsHeader{flex-wrap:wrap}.sessionsBulkAction{margin-left:auto}.sessionList{display:grid;gap:14px}.sessionCard{display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid var(--line);border-radius:14px;padding:16px;background:rgba(255,255,255,.02)}.sessionMain{min-width:0;flex:1}.sessionTitleRow{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.sessionDevice{font-size:13px}.sessionMeta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--muted);font-size:11px}.sessionActions{flex:0 0 auto}
 .securityRows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}

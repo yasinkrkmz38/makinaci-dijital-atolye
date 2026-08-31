@@ -44,8 +44,8 @@ export function BackHeader({
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   back: {
-    width: 45,
-    height: 45,
+    width: 48,
+    height: 48,
     borderWidth: 1,
     borderRadius: 14,
     alignItems: "center",

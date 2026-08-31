@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -8,9 +9,10 @@ import {
   TextInput,
   View,
   type KeyboardTypeOptions,
+  type TextInputProps,
 } from "react-native";
 import { useState, type ReactNode } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Controller,
@@ -18,8 +20,15 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-import { useAppTheme, palette, radius, spacing } from "@/theme/tokens";
+import {
+  useAppTheme,
+  palette,
+  radius,
+  spacing,
+  typography,
+} from "@/theme/tokens";
 import { useNetwork } from "@/providers/network-provider";
+import { statusPresentation } from "@/utils/presentation";
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 export function Screen({
@@ -28,23 +37,38 @@ export function Screen({
   refreshing = false,
   onRefresh,
   contentStyle,
+  bottomInset = true,
 }: {
   children: ReactNode;
   scroll?: boolean;
   refreshing?: boolean;
   onRefresh?: () => void;
   contentStyle?: object;
+  bottomInset?: boolean;
 }) {
   const theme = useAppTheme(),
-    content = <View style={[styles.content, contentStyle]}>{children}</View>;
+    insets = useSafeAreaInsets(),
+    content = (
+      <View
+        style={[
+          styles.content,
+          { paddingBottom: spacing.xxl + (bottomInset ? insets.bottom : 0) },
+          contentStyle,
+        ]}
+      >
+        {children}
+      </View>
+    );
   return (
     <SafeAreaView
-      edges={["top"]}
+      edges={["top", "left", "right"]}
       style={[styles.safe, { backgroundColor: theme.colors.background }]}
     >
       {scroll ? (
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           contentContainerStyle={{ flexGrow: 1 }}
           refreshControl={
             onRefresh ? (
@@ -205,6 +229,10 @@ export function FormField<T extends FieldValues>({
   allowPasswordReveal = false,
   keyboardType = "default",
   multiline = false,
+  autoComplete,
+  textContentType,
+  returnKeyType,
+  onSubmitEditing,
 }: {
   control: Control<T>;
   name: Path<T>;
@@ -214,6 +242,10 @@ export function FormField<T extends FieldValues>({
   allowPasswordReveal?: boolean;
   keyboardType?: KeyboardTypeOptions;
   multiline?: boolean;
+  autoComplete?: TextInputProps["autoComplete"];
+  textContentType?: TextInputProps["textContentType"];
+  returnKeyType?: TextInputProps["returnKeyType"];
+  onSubmitEditing?: TextInputProps["onSubmitEditing"];
 }) {
   const t = useAppTheme(),
     [revealed, setRevealed] = useState(false);
@@ -237,6 +269,11 @@ export function FormField<T extends FieldValues>({
               placeholderTextColor={t.colors.muted}
               secureTextEntry={secureTextEntry && !revealed}
               keyboardType={keyboardType}
+              autoComplete={autoComplete}
+              textContentType={textContentType}
+              returnKeyType={returnKeyType}
+              onSubmitEditing={onSubmitEditing}
+              blurOnSubmit={!multiline}
               autoCapitalize={
                 keyboardType === "email-address" ? "none" : "sentences"
               }
@@ -317,23 +354,77 @@ export function SearchField({
 }
 export function StatusBadge({
   label,
-  tone = "neutral",
+  tone,
+  icon,
 }: {
   label: string;
   tone?: "success" | "danger" | "warning" | "info" | "neutral";
+  icon?: IconName;
 }) {
+  const presentation = statusPresentation(label),
+    resolvedTone = tone || presentation.tone;
   const colors = {
     success: ["#E6F7F0", palette.green],
     danger: ["#FFF0EE", palette.red],
     warning: ["#FFF6E8", palette.orange],
     info: ["#EAF1FF", palette.blue],
     neutral: ["#EDF1F3", "#596A75"],
-  }[tone];
+  }[resolvedTone];
   return (
     <View style={[styles.badge, { backgroundColor: colors[0] }]}>
-      <View style={[styles.dot, { backgroundColor: colors[1] }]} />
-      <Text style={[styles.badgeText, { color: colors[1] }]}>{label}</Text>
+      {icon ? (
+        <Ionicons name={icon} size={12} color={colors[1]} />
+      ) : (
+        <View style={[styles.dot, { backgroundColor: colors[1] }]} />
+      )}
+      <Text style={[styles.badgeText, { color: colors[1] }]}>
+        {presentation.label}
+      </Text>
     </View>
+  );
+}
+export function FilterChip({
+  label,
+  selected = false,
+  onPress,
+  icon,
+}: {
+  label: string;
+  selected?: boolean;
+  onPress: () => void;
+  icon?: IconName;
+}) {
+  const t = useAppTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        {
+          backgroundColor: selected ? t.colors.primary : t.colors.surface,
+          borderColor: selected ? t.colors.primary : t.colors.line,
+          opacity: pressed ? 0.76 : 1,
+        },
+      ]}
+    >
+      {icon ? (
+        <Ionicons
+          name={icon}
+          size={15}
+          color={selected ? t.colors.onPrimary : t.colors.muted}
+        />
+      ) : null}
+      <Text
+        style={[
+          styles.chipText,
+          { color: selected ? t.colors.onPrimary : t.colors.text },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 export function EmptyState({
@@ -500,10 +591,17 @@ export function OfflineBanner() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { padding: spacing.lg, paddingBottom: 110, gap: spacing.lg },
+  content: {
+    width: "100%",
+    maxWidth: 840,
+    alignSelf: "center",
+    padding: spacing.lg,
+    gap: spacing.lg,
+  },
   header: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
     gap: 12,
     marginBottom: 4,
   },
@@ -513,7 +611,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 1.4,
   },
-  headerTitle: { fontSize: 28, fontWeight: "900", letterSpacing: -0.6 },
+  headerTitle: { ...typography.h1, letterSpacing: -0.6 },
   subtitle: { fontSize: 13, lineHeight: 19, marginTop: 4 },
   sectionTitle: {
     flexDirection: "row",
@@ -552,10 +650,10 @@ const styles = StyleSheet.create({
   inputWithAction: { paddingRight: 52 },
   inputAction: {
     position: "absolute",
-    right: 4,
-    top: 3,
-    width: 44,
-    height: 44,
+    right: 1,
+    top: 1,
+    width: 48,
+    height: 48,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -582,6 +680,17 @@ const styles = StyleSheet.create({
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
   badgeText: { fontSize: 10, fontWeight: "800" },
+  chip: {
+    minHeight: 48,
+    paddingHorizontal: 13,
+    borderWidth: 1,
+    borderRadius: radius.pill,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  chipText: { fontSize: 12, fontWeight: "800" },
   empty: { alignItems: "center", paddingVertical: 24, gap: 8 },
   emptyTitle: { fontSize: 17, fontWeight: "900", textAlign: "center" },
   emptyBody: { fontSize: 13, textAlign: "center", lineHeight: 19 },

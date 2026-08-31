@@ -1,6 +1,3 @@
 /// <reference types="expo/types" />
 
-declare module "*.png" {
-  const source: number;
-  export default source;
-}
+// NOTE: This file should not be edited and should be in your git ignore

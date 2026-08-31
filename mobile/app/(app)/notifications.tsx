@@ -10,6 +10,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { EntityRow } from "@/components/EntityRow";
+import { formatDate } from "@/utils/presentation";
 
 export default function Notifications() {
   const qc = useQueryClient(),
@@ -56,7 +57,7 @@ export default function Notifications() {
             title={item.title}
             subtitle={item.body}
             status={item.read_at ? "Okundu" : "Yeni"}
-            meta={new Date(item.created_at).toLocaleDateString("tr-TR")}
+            meta={formatDate(item.created_at)}
             icon="notifications-outline"
             onPress={() => read.mutate(item.id)}
           />

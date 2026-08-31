@@ -1,5 +1,7 @@
 import {
   AppState,
+  Image,
+  Platform,
   StyleSheet,
   Text,
   View,
@@ -15,11 +17,21 @@ import {
 } from "react";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppButton } from "@/components/ui";
 import { useAuth } from "./auth-provider";
 import { useAppTheme } from "@/theme/tokens";
+import appIcon from "../../assets/branding/icon-legacy.png";
 
 const KEY = "dm_biometric_lock";
+const getLockSetting = () =>
+  Platform.OS === "web"
+    ? AsyncStorage.getItem(KEY)
+    : SecureStore.getItemAsync(KEY);
+const setLockSetting = (value: string) =>
+  Platform.OS === "web"
+    ? AsyncStorage.setItem(KEY, value)
+    : SecureStore.setItemAsync(KEY, value);
 type LockState = {
   enabled: boolean;
   setEnabled: (value: boolean) => Promise<boolean>;
@@ -32,6 +44,10 @@ export function AppLockProvider({ children }: PropsWithChildren) {
     [enabled, setEnabledState] = useState(false),
     [locked, setLocked] = useState(false);
   const unlock = useCallback(async () => {
+    if (Platform.OS === "web") {
+      setLocked(false);
+      return;
+    }
     const available =
       (await LocalAuthentication.hasHardwareAsync()) &&
       (await LocalAuthentication.isEnrolledAsync());
@@ -48,7 +64,7 @@ export function AppLockProvider({ children }: PropsWithChildren) {
     if (result.success) setLocked(false);
   }, []);
   useEffect(() => {
-    SecureStore.getItemAsync(KEY).then((value) => {
+    getLockSetting().then((value) => {
       const active = value === "1";
       setEnabledState(active);
       setLocked(active && !!user);
@@ -64,6 +80,7 @@ export function AppLockProvider({ children }: PropsWithChildren) {
     if (locked) unlock();
   }, [locked, unlock]);
   const setEnabled = async (value: boolean) => {
+    if (Platform.OS === "web" && value) return false;
     if (value) {
       const available =
         (await LocalAuthentication.hasHardwareAsync()) &&
@@ -74,7 +91,7 @@ export function AppLockProvider({ children }: PropsWithChildren) {
       });
       if (!result.success) return false;
     }
-    await SecureStore.setItemAsync(KEY, value ? "1" : "0");
+    await setLockSetting(value ? "1" : "0");
     setEnabledState(value);
     setLocked(false);
     return true;
@@ -87,7 +104,7 @@ export function AppLockProvider({ children }: PropsWithChildren) {
     return (
       <LockContext.Provider value={context}>
         <View style={[styles.lock, { backgroundColor: t.colors.background }]}>
-          <Text style={[styles.logo, { color: t.colors.primary }]}>DM</Text>
+          <Image source={appIcon} style={styles.logo} resizeMode="cover" />
           <Text style={[styles.title, { color: t.colors.text }]}>
             Dijital Makinacı kilitli
           </Text>
@@ -119,7 +136,7 @@ const styles = StyleSheet.create({
     padding: 28,
     gap: 14,
   },
-  logo: { fontSize: 38, fontWeight: "900" },
+  logo: { width: 92, height: 92, borderRadius: 24 },
   title: { fontSize: 23, fontWeight: "900" },
   body: { textAlign: "center", fontSize: 14, marginBottom: 10 },
 });

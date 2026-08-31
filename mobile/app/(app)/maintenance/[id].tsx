@@ -14,6 +14,11 @@ import {
 } from "@/components/ui";
 import { BackHeader } from "@/components/BackHeader";
 import { useAppTheme } from "@/theme/tokens";
+import {
+  formatDate,
+  priorityPresentation,
+  statusPresentation,
+} from "@/utils/presentation";
 
 type Checklist = {
   id: number;
@@ -90,7 +95,9 @@ export default function MaintenanceDetail() {
         />
       </Screen>
     );
-  const r = record.data;
+  const r = record.data,
+    presentedStatus = statusPresentation(r.status),
+    presentedPriority = priorityPresentation(r.priority);
   return (
     <Screen
       refreshing={record.isRefetching || list.isRefetching}
@@ -99,16 +106,16 @@ export default function MaintenanceDetail() {
       <BackHeader title={r.task} subtitle={r.machine_name} />
       <View style={styles.row}>
         <StatusBadge
-          label={r.status}
-          tone={r.status === "done" ? "success" : "warning"}
+          label={presentedStatus.label}
+          tone={presentedStatus.tone}
         />
         <StatusBadge
-          label={r.priority || "Normal"}
-          tone={r.priority === "Kritik" ? "danger" : "neutral"}
+          label={presentedPriority.label}
+          tone={presentedPriority.tone}
         />
       </View>
       <Card>
-        <Info label="Plan tarihi" value={r.due_date} />
+        <Info label="Plan tarihi" value={formatDate(r.due_date)} />
         <Info label="Teknisyen" value={r.technician_member_name} />
         <Info
           label="Tekrar"
@@ -133,16 +140,7 @@ export default function MaintenanceDetail() {
             <Text style={{ color: t.colors.text, fontWeight: "800" }}>
               {item.label}
             </Text>
-            <StatusBadge
-              label={item.result_status}
-              tone={
-                item.result_status === "ok"
-                  ? "success"
-                  : item.result_status === "pending"
-                    ? "neutral"
-                    : "danger"
-              }
-            />
+            <ChecklistStatus value={item.result_status} />
             <View style={styles.row}>
               <AppButton
                 label="Uygun"
@@ -182,6 +180,10 @@ export default function MaintenanceDetail() {
       </Text>
     </Screen>
   );
+}
+function ChecklistStatus({ value }: { value: string }) {
+  const presented = statusPresentation(value);
+  return <StatusBadge label={presented.label} tone={presented.tone} />;
 }
 function Info({ label, value }: { label: string; value: unknown }) {
   const t = useAppTheme();

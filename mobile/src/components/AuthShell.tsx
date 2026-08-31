@@ -1,14 +1,15 @@
 import {
   KeyboardAvoidingView,
+  Image,
   Platform,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import type { ReactNode } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "./ui";
 import { useAppTheme, spacing } from "@/theme/tokens";
+import appIcon from "../../assets/branding/icon-legacy.png";
 
 export function AuthShell({
   title,
@@ -23,13 +24,15 @@ export function AuthShell({
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Screen contentStyle={styles.content}>
         <View style={styles.brand}>
-          <View style={[styles.logo, { backgroundColor: t.colors.primary }]}>
-            <Ionicons name="construct" size={34} color="#fff" />
-          </View>
+          <Image
+            accessibilityLabel="Dijital Makinacı"
+            source={appIcon}
+            style={styles.logo}
+          />
           <Text style={[styles.brandName, { color: t.colors.text }]}>
             Dijital Makinacı
           </Text>
@@ -62,15 +65,20 @@ export function AuthShell({
   );
 }
 const styles = StyleSheet.create({
-  content: { flex: 1, justifyContent: "center", paddingVertical: spacing.xxl },
+  content: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    flex: 1,
+    justifyContent: "center",
+    paddingVertical: spacing.xxl,
+  },
   brand: { alignItems: "center", gap: 4 },
   logo: {
     width: 68,
     height: 68,
     borderRadius: 17,
     marginBottom: 8,
-    alignItems: "center",
-    justifyContent: "center",
   },
   brandName: { fontSize: 25, fontWeight: "900" },
   brandTag: { fontSize: 10, fontWeight: "900", letterSpacing: 1.7 },

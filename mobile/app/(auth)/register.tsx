@@ -34,12 +34,22 @@ export default function Register() {
       title="Hesabınızı oluşturun"
       subtitle="E-posta doğrulaması isteğe bağlıdır; hesabınızı hemen kullanabilirsiniz."
     >
-      <FormField control={control} name="name" label="Ad soyad" />
+      <FormField
+        control={control}
+        name="name"
+        label="Ad soyad"
+        autoComplete="name"
+        textContentType="name"
+        returnKeyType="next"
+      />
       <FormField
         control={control}
         name="email"
         label="E-posta"
         keyboardType="email-address"
+        autoComplete="email"
+        textContentType="emailAddress"
+        returnKeyType="next"
       />
       <FormField
         control={control}
@@ -47,6 +57,10 @@ export default function Register() {
         label="Güçlü şifre"
         secureTextEntry
         allowPasswordReveal
+        autoComplete="new-password"
+        textContentType="newPassword"
+        returnKeyType="done"
+        onSubmitEditing={() => void submit()}
       />
       <AppButton
         label="Ücretsiz hesap oluştur"

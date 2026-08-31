@@ -2,15 +2,11 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "./ui";
 import { useAppTheme } from "@/theme/tokens";
-
-const tone = (value = "") =>
-  /kritik|arız|gecik|open/i.test(value)
-    ? ("danger" as const)
-    : /yüksek|bakım|progress/i.test(value)
-      ? ("warning" as const)
-      : /tamam|done|çalış/i.test(value)
-        ? ("success" as const)
-        : ("neutral" as const);
+import {
+  formatPossibleDate,
+  statusPresentation,
+  type SemanticTone,
+} from "@/utils/presentation";
 export function EntityRow({
   title,
   subtitle,
@@ -18,6 +14,7 @@ export function EntityRow({
   meta,
   onPress,
   icon = "document-text-outline",
+  statusTone,
 }: {
   title: string;
   subtitle?: string;
@@ -25,8 +22,10 @@ export function EntityRow({
   meta?: string;
   onPress?: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
+  statusTone?: SemanticTone;
 }) {
-  const t = useAppTheme();
+  const t = useAppTheme(),
+    presentedStatus = status ? statusPresentation(status) : null;
   return (
     <Pressable
       accessibilityRole="button"
@@ -59,10 +58,16 @@ export function EntityRow({
           </Text>
         ) : null}
         <View style={styles.meta}>
-          {status ? <StatusBadge label={status} tone={tone(status)} /> : null}
+          {presentedStatus ? (
+            <StatusBadge
+              label={presentedStatus.label}
+              tone={statusTone || presentedStatus.tone}
+              icon={presentedStatus.icon as keyof typeof Ionicons.glyphMap}
+            />
+          ) : null}
           {meta ? (
             <Text style={[styles.metaText, { color: t.colors.muted }]}>
-              {meta}
+              {formatPossibleDate(meta)}
             </Text>
           ) : null}
         </View>

@@ -41,6 +41,10 @@ export default function Mfa() {
         name="code"
         label="Doğrulama kodu"
         keyboardType="number-pad"
+        autoComplete="one-time-code"
+        textContentType="oneTimeCode"
+        returnKeyType="done"
+        onSubmitEditing={() => void submit()}
       />
       <AppButton
         label="Doğrula ve devam et"

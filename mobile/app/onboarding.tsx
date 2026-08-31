@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -15,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "@/components/ui";
 import { useAuth } from "@/providers/auth-provider";
 import { useAppTheme } from "@/theme/tokens";
+import appIcon from "../assets/branding/icon-legacy.png";
 
 const slides = [
   {
@@ -33,14 +35,25 @@ const slides = [
     body: "Arıza, bakım, iş emri ve saha fotoğrafları güvenle bekler; internet geldiğinde tekilleştirilerek gönderilir.",
   },
 ];
+const viewabilityConfig = { itemVisiblePercentThreshold: 60 };
 
 export default function Onboarding() {
   const t = useAppTheme(),
     router = useRouter(),
     { user } = useAuth(),
     { width } = useWindowDimensions(),
+    [index, setIndex] = useState(0),
     list = useRef<FlatList<(typeof slides)[number]>>(null),
-    [index, setIndex] = useState(0);
+    onViewableItemsChanged = useCallback(
+      ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+        if (
+          viewableItems[0]?.index !== null &&
+          viewableItems[0]?.index !== undefined
+        )
+          setIndex(viewableItems[0].index);
+      },
+      [],
+    );
   const finish = async () => {
     await AsyncStorage.setItem("dm_onboarding_v1", "done");
     router.replace(user ? "/(app)/(tabs)" : "/(auth)/login");
@@ -48,9 +61,11 @@ export default function Onboarding() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: t.colors.background }]}>
       <View style={styles.top}>
-        <View style={[styles.brand, { backgroundColor: t.colors.header }]}>
-          <Ionicons name="construct" size={24} color="#fff" />
-        </View>
+        <Image
+          accessibilityLabel="Dijital Makinacı"
+          source={appIcon}
+          style={styles.brand}
+        />
         <Text style={[styles.brandText, { color: t.colors.text }]}>Dijital Makinacı</Text>
         <Pressable accessibilityRole="button" onPress={finish} style={styles.skip}>
           <Text style={{ color: t.colors.primary, fontWeight: "800" }}>Geç</Text>
@@ -63,11 +78,8 @@ export default function Onboarding() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.title}
-        onViewableItemsChanged={({ viewableItems }: { viewableItems: ViewToken[] }) => {
-          if (viewableItems[0]?.index !== null && viewableItems[0]?.index !== undefined)
-            setIndex(viewableItems[0].index);
-        }}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         renderItem={({ item }) => (
           <View style={[styles.slide, { width }]}>
             <View style={[styles.illustration, { backgroundColor: t.colors.raised, borderColor: t.colors.line }]}>
@@ -100,7 +112,7 @@ const styles = StyleSheet.create({
   top: { minHeight: 66, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", gap: 10 },
   brand: { width: 42, height: 42, borderRadius: 13, alignItems: "center", justifyContent: "center" },
   brandText: { flex: 1, fontSize: 17, fontWeight: "900" },
-  skip: { minWidth: 48, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  skip: { minWidth: 48, minHeight: 48, alignItems: "center", justifyContent: "center" },
   slide: { flex: 1, paddingHorizontal: 24, alignItems: "center", justifyContent: "center", gap: 18 },
   illustration: { width: "100%", maxWidth: 390, aspectRatio: 1.25, borderWidth: 1, borderRadius: 32, alignItems: "center", justifyContent: "center" },
   title: { maxWidth: 380, fontSize: 30, lineHeight: 36, fontWeight: "900", textAlign: "center", letterSpacing: -0.7 },

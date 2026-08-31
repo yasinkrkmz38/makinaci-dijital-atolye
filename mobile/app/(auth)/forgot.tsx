@@ -38,6 +38,10 @@ export default function Forgot() {
         name="email"
         label="E-posta"
         keyboardType="email-address"
+        autoComplete="email"
+        textContentType="emailAddress"
+        returnKeyType="send"
+        onSubmitEditing={() => void submit()}
       />
       <AppButton
         label="Sıfırlama bağlantısı gönder"

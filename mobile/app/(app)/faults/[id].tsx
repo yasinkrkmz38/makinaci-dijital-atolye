@@ -11,6 +11,7 @@ import { BackHeader } from "@/components/BackHeader";
 import { ChoiceField } from "@/components/ChoiceField";
 import { EntityRow } from "@/components/EntityRow";
 import { useAppTheme } from "@/theme/tokens";
+import { formatDateTime, priorityPresentation, roleLabel, statusPresentation } from "@/utils/presentation";
 
 type Detail = {
   record: Fault & { note?: string; system?: string; category?: string; diagnosis?: string; created_by_name?: string; closed_by_name?: string };
@@ -19,8 +20,6 @@ type Detail = {
 };
 type CompanyData = { members: Array<{ id: number; name: string; role: string; is_active: boolean }> };
 type AssignmentForm = { assigned_user_id: string };
-const statusLabel: Record<string, string> = { open: "Açık", new: "Yeni", reviewing: "İnceleniyor", assigned: "Atandı", in_progress: "İşlemde", waiting_part: "Parça bekliyor", resolved: "Çözüldü", closed: "Kapatıldı", cancelled: "İptal edildi" };
-
 export default function FaultDetail() {
   const { id } = useLocalSearchParams<{ id: string }>(),
     t = useAppTheme(), qc = useQueryClient(),
@@ -44,7 +43,9 @@ export default function FaultDetail() {
       onError: (error) => Alert.alert("Dosya yüklenemedi", error.message),
     });
   const detail = query.data, record = detail?.record,
-    closed = record ? ["resolved", "closed"].includes(record.status) : false;
+    closed = record ? ["resolved", "closed"].includes(record.status) : false,
+    presentedStatus = statusPresentation(record?.status),
+    presentedSeverity = priorityPresentation(record?.severity);
   const closeFault = () => {
     if (!rootCause.trim() || !actionTaken.trim() || !resolution.trim()) return Alert.alert("Kapatma bilgileri eksik", "Kök neden, yapılan işlem ve çözüm notunu doldurun.");
     const minutes = Number(downtime);
@@ -56,7 +57,7 @@ export default function FaultDetail() {
   return (
     <Screen refreshing={query.isRefetching} onRefresh={query.refetch}>
       <BackHeader title={record.title || record.symptom || `Arıza #${id}`} subtitle={[record.machine_name, record.category].filter(Boolean).join(" · ")} />
-      <View style={styles.wrap}><StatusBadge label={statusLabel[record.status] || record.status} tone={closed ? "success" : "danger"} /><StatusBadge label={record.severity || "Önem yok"} tone="warning" /></View>
+      <View style={styles.wrap}><StatusBadge label={presentedStatus.label} tone={presentedStatus.tone} /><StatusBadge label={presentedSeverity.label} tone={presentedSeverity.tone} /></View>
       <Card>
         <Info label="Belirti" value={record.symptom} /><Info label="Sistem" value={record.system} />
         <Info label="Atanan teknisyen" value={record.assigned_user_name} /><Info label="Bildiren" value={record.created_by_name} />
@@ -70,7 +71,7 @@ export default function FaultDetail() {
           <AppButton label="Parça bekliyor" variant="secondary" onPress={() => status.mutate({ status: "waiting_part" })} loading={status.isPending} />
         </View>
         <Card>
-          <ChoiceField control={control} name="assigned_user_id" label="Teknisyen ata / değiştir" choices={(company.data?.members || []).filter((item) => item.is_active !== false).map((item) => ({ label: `${item.name} · ${item.role}`, value: String(item.id) }))} />
+          <ChoiceField control={control} name="assigned_user_id" label="Teknisyen ata / değiştir" choices={(company.data?.members || []).filter((item) => item.is_active !== false).map((item) => ({ label: `${item.name} · ${roleLabel(item.role)}`, value: String(item.id) }))} />
           <AppButton label="Atamayı kaydet" variant="secondary" disabled={!assignedUserId} onPress={() => status.mutate({ status: record.status, assigned_user_id: Number(assignedUserId) })} />
         </Card>
         <SectionTitle title="Arızayı sonuçlandır" />
@@ -94,7 +95,7 @@ export default function FaultDetail() {
       </View>
       {detail.attachments.map((file) => <EntityRow key={file.id} title={file.file_name} meta={`${Math.ceil(file.size_bytes / 1024)} KB`} icon="attach-outline" />)}
       <SectionTitle title="Arıza geçmişi" />
-      {detail.events.length ? detail.events.map((event) => <EntityRow key={event.id} title={event.body || event.event_type} subtitle={event.user_name} status={event.to_status ? statusLabel[event.to_status] || event.to_status : event.event_type} meta={new Date(event.created_at).toLocaleString("tr-TR")} icon="time-outline" />) : <Text style={{ color: t.colors.muted }}>Henüz geçmiş kaydı yok.</Text>}
+      {detail.events.length ? detail.events.map((event) => <EntityRow key={event.id} title={event.body || event.event_type} subtitle={event.user_name} status={event.to_status || event.event_type} meta={formatDateTime(event.created_at)} icon="time-outline" />) : <Text style={{ color: t.colors.muted }}>Henüz geçmiş kaydı yok.</Text>}
     </Screen>
   );
 }

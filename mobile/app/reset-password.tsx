@@ -71,6 +71,9 @@ export default function ResetPassword() {
             label="Yeni şifre"
             secureTextEntry
             allowPasswordReveal
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="next"
           />
           <FormField
             control={control}
@@ -78,6 +81,12 @@ export default function ResetPassword() {
             label="Yeni şifre tekrar"
             secureTextEntry
             allowPasswordReveal
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="done"
+            onSubmitEditing={() =>
+              void handleSubmit((values) => mutation.mutate(values))()
+            }
           />
           <AppButton
             label="Şifreyi güvenle yenile"

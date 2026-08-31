@@ -17,6 +17,12 @@ import {
 import { BackHeader } from "@/components/BackHeader";
 import { EntityRow } from "@/components/EntityRow";
 import { useAppTheme } from "@/theme/tokens";
+import {
+  formatDate,
+  formatDateTime,
+  priorityPresentation,
+  statusPresentation,
+} from "@/utils/presentation";
 
 type Event = {
   id: number;
@@ -129,7 +135,9 @@ export default function WorkOrderDetail() {
     );
   const d = query.data,
     r = d.record,
-    openTimer = d.timers.some((x) => !x.stopped_at);
+    openTimer = d.timers.some((x) => !x.stopped_at),
+    presentedStatus = statusPresentation(r.status),
+    presentedPriority = priorityPresentation(r.priority);
   return (
     <Screen refreshing={query.isRefetching} onRefresh={refresh}>
       <BackHeader
@@ -138,23 +146,18 @@ export default function WorkOrderDetail() {
       />
       <View style={styles.row}>
         <StatusBadge
-          label={r.status}
-          tone={
-            r.status === "done"
-              ? "success"
-              : r.status === "in_progress"
-                ? "warning"
-                : "info"
-          }
+          label={presentedStatus.label}
+          tone={presentedStatus.tone}
+          icon={presentedStatus.icon as keyof typeof import("@expo/vector-icons").Ionicons.glyphMap}
         />
         <StatusBadge
-          label={r.priority || "Normal"}
-          tone={r.priority === "Kritik" ? "danger" : "neutral"}
+          label={presentedPriority.label}
+          tone={presentedPriority.tone}
         />
       </View>
       <Card>
         <Info label="Sorumlu" value={r.assigned_member_name} />
-        <Info label="Termin" value={r.due_date} />
+        <Info label="Termin" value={formatDate(r.due_date)} />
         <Info label="Çalışma" value={`${r.actual_duration_min || 0} dk`} />
         <Text style={{ color: t.colors.text, lineHeight: 21, marginTop: 9 }}>
           {r.description || "Açıklama girilmemiş."}
@@ -285,7 +288,7 @@ export default function WorkOrderDetail() {
             key={event.id}
             title={event.body || event.event_type}
             subtitle={event.user_name}
-            meta={new Date(event.created_at).toLocaleString("tr-TR")}
+            meta={formatDateTime(event.created_at)}
             icon="time-outline"
           />
         ))}

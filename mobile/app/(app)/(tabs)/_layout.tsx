@@ -1,15 +1,21 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { ColorValue } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/theme/tokens";
 
 const icon =
-  (name: keyof typeof Ionicons.glyphMap) =>
-  (props: { color: ColorValue; size: number }) => (
-    <Ionicons name={name} {...props} />
+  (
+    active: keyof typeof Ionicons.glyphMap,
+    inactive: keyof typeof Ionicons.glyphMap,
+  ) =>
+  (props: { color: ColorValue; size: number; focused: boolean }) => (
+    <Ionicons name={props.focused ? active : inactive} {...props} />
   );
 export default function TabLayout() {
-  const t = useAppTheme();
+  const t = useAppTheme(),
+    insets = useSafeAreaInsets(),
+    bottom = Math.max(insets.bottom, 8);
   return (
     <Tabs
       screenOptions={{
@@ -19,35 +25,54 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: t.colors.surface,
           borderTopColor: t.colors.line,
-          height: 68,
-          paddingTop: 7,
-          paddingBottom: 8,
+          height: 60 + bottom,
+          paddingTop: 6,
+          paddingBottom: bottom,
         },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: "800" },
+        tabBarItemStyle: { minHeight: 48 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "800" },
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{ title: "Ana Sayfa", tabBarIcon: icon("grid-outline") }}
+        options={{
+          title: "Ana Sayfa",
+          tabBarAccessibilityLabel: "Ana sayfa",
+          tabBarIcon: icon("grid", "grid-outline"),
+        }}
       />
       <Tabs.Screen
         name="machines"
-        options={{ title: "Makineler", tabBarIcon: icon("construct-outline") }}
+        options={{
+          title: "Makineler",
+          tabBarAccessibilityLabel: "Makineler",
+          tabBarIcon: icon("construct", "construct-outline"),
+        }}
       />
       <Tabs.Screen
         name="work-orders"
         options={{
           title: "İş Emirleri",
-          tabBarIcon: icon("clipboard-outline"),
+          tabBarAccessibilityLabel: "İş emirleri",
+          tabBarIcon: icon("clipboard", "clipboard-outline"),
         }}
       />
       <Tabs.Screen
         name="faults"
-        options={{ title: "Arızalar", tabBarIcon: icon("warning-outline") }}
+        options={{
+          title: "Arızalar",
+          tabBarAccessibilityLabel: "Arızalar",
+          tabBarIcon: icon("warning", "warning-outline"),
+        }}
       />
       <Tabs.Screen
         name="more"
-        options={{ title: "Daha Fazla", tabBarIcon: icon("apps-outline") }}
+        options={{
+          title: "Daha Fazla",
+          tabBarAccessibilityLabel: "Daha fazla",
+          tabBarIcon: icon("apps", "apps-outline"),
+        }}
       />
     </Tabs>
   );

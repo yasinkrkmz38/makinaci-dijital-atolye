@@ -39,7 +39,7 @@ export default function Machines() {
     });
   const items = query.data?.items || [];
   return (
-    <Screen refreshing={query.isRefetching} onRefresh={query.refetch}>
+    <Screen bottomInset={false} refreshing={query.isRefetching} onRefresh={query.refetch}>
       <PageHeader
         eyebrow="VARLIK YÖNETİMİ"
         title="Makineler"
@@ -69,7 +69,11 @@ export default function Machines() {
           <EntityRow
             key={item.id}
             title={item.name}
-            subtitle={[item.manufacturer, item.model, item.location]
+            subtitle={[
+              [item.manufacturer, item.model].filter(Boolean).join(" "),
+              item.location,
+              item.criticality ? `${item.criticality} kritiklik` : "",
+            ]
               .filter(Boolean)
               .join(" · ")}
             status={item.status}

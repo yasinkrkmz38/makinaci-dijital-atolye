@@ -7,6 +7,7 @@ import type { DashboardData } from "@/types";
 import { useAuth } from "@/providers/auth-provider";
 import {
   Card,
+  EmptyState,
   ErrorState,
   MetricCard,
   OfflineBanner,
@@ -30,7 +31,7 @@ export default function Home() {
     });
   const d = query.data;
   return (
-    <Screen refreshing={query.isRefetching} onRefresh={query.refetch}>
+    <Screen bottomInset={false} refreshing={query.isRefetching} onRefresh={query.refetch}>
       <OfflineBanner />
       <PageHeader
         eyebrow={user?.company?.name || "DİJİTAL MAKİNACI"}
@@ -136,6 +137,40 @@ export default function Home() {
               />
             </View>
           </Card>
+          {d.critical || d.overdue || d.lowStock ? (
+            <>
+              <SectionTitle title="Dikkat gerektirenler" />
+              <View style={styles.risks}>
+                {d.critical ? (
+                  <RiskRow
+                    title={`${d.critical} kritik makine`}
+                    body="Arıza veya bakım durumundaki kritik varlıkları inceleyin."
+                    icon="warning-outline"
+                    tone="danger"
+                    onPress={() => router.push("/(app)/(tabs)/machines")}
+                  />
+                ) : null}
+                {d.overdue ? (
+                  <RiskRow
+                    title={`${d.overdue} geciken bakım`}
+                    body="Plan tarihi geçen bakımlar saha aksiyonu bekliyor."
+                    icon="calendar-outline"
+                    tone="warning"
+                    onPress={() => router.push("/(app)/maintenance")}
+                  />
+                ) : null}
+                {d.lowStock ? (
+                  <RiskRow
+                    title={`${d.lowStock} düşük stok kalemi`}
+                    body="Kritik yedek parçaların stok seviyelerini kontrol edin."
+                    icon="cube-outline"
+                    tone="warning"
+                    onPress={() => router.push("/(app)/parts")}
+                  />
+                ) : null}
+              </View>
+            </>
+          ) : null}
           <SectionTitle title="Hızlı işlemler" />
           <View style={styles.actions}>
             {canUser(user, "operate") ? <Quick
@@ -173,13 +208,53 @@ export default function Home() {
               />
             ))
           ) : (
-            <Text style={{ color: t.colors.muted }}>
-              Henüz bakım kaydı yok.
-            </Text>
+            <EmptyState
+              title="Henüz bakım kaydı yok"
+              body="Planlanan bakımlar burada tarih ve durum bilgisiyle görünür."
+            />
           )}
         </>
       ) : null}
     </Screen>
+  );
+}
+function RiskRow({
+  title,
+  body,
+  icon,
+  tone,
+  onPress,
+}: {
+  title: string;
+  body: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  tone: "danger" | "warning";
+  onPress: () => void;
+}) {
+  const t = useAppTheme(),
+    color = tone === "danger" ? t.colors.danger : t.colors.warning;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.risk,
+        {
+          backgroundColor: t.colors.surface,
+          borderColor: color,
+          opacity: pressed ? 0.76 : 1,
+        },
+      ]}
+    >
+      <View style={[styles.riskIcon, { backgroundColor: `${color}18` }]}>
+        <Ionicons name={icon} size={20} color={color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.riskTitle, { color: t.colors.text }]}>{title}</Text>
+        <Text style={[styles.riskBody, { color: t.colors.muted }]}>{body}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={t.colors.muted} />
+    </Pressable>
   );
 }
 function Quick({
@@ -211,8 +286,8 @@ function Quick({
 }
 const styles = StyleSheet.create({
   bell: {
-    width: 46,
-    height: 46,
+    width: 48,
+    height: 48,
     borderWidth: 1,
     borderRadius: 15,
     alignItems: "center",
@@ -230,7 +305,9 @@ const styles = StyleSheet.create({
   fill: { height: "100%", borderRadius: 9 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   quick: {
-    width: "48%",
+    flexBasis: "47%",
+    flexGrow: 1,
+    minWidth: 140,
     minHeight: 84,
     borderWidth: 1,
     borderRadius: 16,
@@ -238,4 +315,23 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   quickText: { fontSize: 12, fontWeight: "800" },
+  risks: { gap: 9 },
+  risk: {
+    minHeight: 74,
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 11,
+  },
+  riskIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  riskTitle: { fontSize: 13, fontWeight: "900" },
+  riskBody: { fontSize: 11, lineHeight: 16, marginTop: 2 },
 });

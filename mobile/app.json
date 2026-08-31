@@ -2,9 +2,9 @@
   "expo": {
     "name": "Dijital Makinacı",
     "slug": "dijital-makinaci",
-    "version": "1.0.1",
+    "version": "1.1.1",
     "orientation": "portrait",
-    "icon": "../icon-512.png",
+    "icon": "./assets/branding/icon-legacy.png",
     "scheme": "dijitalmakinaci",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -18,18 +18,19 @@
     },
     "android": {
       "package": "pro.dijitalmakinaci.app",
-      "versionCode": 2,
+      "versionCode": 4,
+      "icon": "./assets/branding/icon-legacy.png",
       "adaptiveIcon": {
-        "foregroundImage": "../icon-512.png",
-        "backgroundColor": "#102838"
+        "foregroundImage": "./assets/branding/icon-adaptive-foreground.png",
+        "monochromeImage": "./assets/branding/icon-monochrome.png",
+        "backgroundColor": "#081722"
       },
       "predictiveBackGestureEnabled": true,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT",
-        "android.permission.POST_NOTIFICATIONS",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
@@ -60,6 +61,12 @@
       "expo-router",
       "expo-secure-store",
       [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Makine QR kodlarını taramak ve saha kayıtlarına fotoğraf eklemek için kameraya izin verin."
@@ -74,7 +81,7 @@
       [
         "expo-notifications",
         {
-          "icon": "../icon-192.png",
+          "icon": "./assets/branding/icon-monochrome.png",
           "color": "#2D6CDF"
         }
       ],
@@ -87,9 +94,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#102838",
-          "image": "../icon-512.png",
-          "imageWidth": 160
+          "backgroundColor": "#081722",
+          "image": "./assets/branding/icon-adaptive-foreground.png",
+          "imageWidth": 180,
+          "resizeMode": "contain"
         }
       ]
     ],

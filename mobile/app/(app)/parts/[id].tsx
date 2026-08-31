@@ -18,6 +18,7 @@ import { EntityRow } from "@/components/EntityRow";
 import { useAppTheme } from "@/theme/tokens";
 import { useAuth } from "@/providers/auth-provider";
 import { canUser } from "@/services/permissions";
+import { formatDateTime } from "@/utils/presentation";
 
 type Movement = {
   id: number;
@@ -177,7 +178,7 @@ export default function PartDetail() {
             }
             subtitle={item.note || item.user_name}
             status={`${item.previous_qty} → ${item.new_qty}`}
-            meta={new Date(item.created_at).toLocaleString("tr-TR")}
+            meta={formatDateTime(item.created_at)}
             icon="swap-horizontal-outline"
           />
         ))

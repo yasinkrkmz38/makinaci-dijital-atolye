@@ -8,6 +8,7 @@ import { useNetwork } from "@/providers/network-provider";
 import { AppButton, EmptyState, Screen } from "@/components/ui";
 import { BackHeader } from "@/components/BackHeader";
 import { EntityRow } from "@/components/EntityRow";
+import { formatDateTime } from "@/utils/presentation";
 
 const labels = {
   fault: "Arıza kaydı",
@@ -52,7 +53,7 @@ export default function Offline() {
                 "Saha kaydı",
             )}
             status={`${item.attempts} deneme`}
-            meta={new Date(item.createdAt).toLocaleString("tr-TR")}
+            meta={formatDateTime(item.createdAt)}
             icon="cloud-offline-outline"
             onPress={() =>
               Alert.alert(

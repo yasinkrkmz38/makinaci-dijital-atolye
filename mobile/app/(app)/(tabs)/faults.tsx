@@ -16,6 +16,7 @@ import { EntityRow } from "@/components/EntityRow";
 import { useAuth } from "@/providers/auth-provider";
 import { canUser } from "@/services/permissions";
 import { Pager } from "@/components/Pager";
+import { priorityPresentation } from "@/utils/presentation";
 
 export default function Faults() {
   const router = useRouter(),
@@ -31,7 +32,7 @@ export default function Faults() {
     });
   const items = query.data?.items || [];
   return (
-    <Screen refreshing={query.isRefetching} onRefresh={query.refetch}>
+    <Screen bottomInset={false} refreshing={query.isRefetching} onRefresh={query.refetch}>
       <PageHeader
         eyebrow="ARIZA YÖNETİMİ"
         title="Arızalar"
@@ -64,9 +65,11 @@ export default function Faults() {
           <EntityRow
             key={item.id}
             title={item.title || item.symptom || `Arıza #${item.id}`}
-            subtitle={item.machine_name}
+            subtitle={[item.machine_name, item.assigned_user_name]
+              .filter(Boolean)
+              .join(" · ")}
             status={item.status}
-            meta={item.severity}
+            meta={`${priorityPresentation(item.severity).label} önem`}
             icon="warning-outline"
             onPress={() => router.push(`/(app)/faults/${item.id}`)}
           />

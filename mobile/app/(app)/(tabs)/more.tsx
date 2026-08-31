@@ -4,59 +4,40 @@ import { useRouter } from "expo-router";
 import { PageHeader, Screen, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/providers/auth-provider";
 import { useAppTheme } from "@/theme/tokens";
+import { roleLabel } from "@/utils/presentation";
 
-const items = [
-  ["Global arama", "Tüm firma kayıtlarında ara", "search-outline", "/(app)/search"],
-  [
-    "Bakım planları",
-    "Takvim, saat ve checklist",
-    "calendar-outline",
-    "/(app)/maintenance",
-  ],
-  ["Stok ve parçalar", "Giriş, çıkış ve sayım", "cube-outline", "/(app)/parts"],
-  [
-    "Firma ve ekip",
-    "Üyeler, roller ve e-posta davetleri",
-    "people-outline",
-    "/(app)/company",
-  ],
-  [
-    "Arıza Teşhis Merkezi",
-    "Karar ağaçlarıyla teşhis",
-    "git-branch-outline",
-    "/(app)/diagnosis",
-  ],
-  [
-    "Teknik kütüphane",
-    "Standartlar ve saha notları",
-    "library-outline",
-    "/(app)/library",
-  ],
-  [
-    "Hesaplama araçları",
-    "10 teknik hesaplayıcı",
-    "calculator-outline",
-    "/(app)/calculators",
-  ],
-  [
-    "Raporlar",
-    "Bakım ve güvenilirlik KPI",
-    "bar-chart-outline",
-    "/(app)/reports",
-  ],
-  [
-    "Çevrimdışı kayıtlar",
-    "Bekleyen saha işlemleri",
-    "cloud-offline-outline",
-    "/(app)/offline",
-  ],
+const groups = [
+  {
+    title: "Operasyon",
+    items: [
+      ["Bakım planları", "Takvim, saat ve checklist", "calendar-outline", "/(app)/maintenance"],
+      ["Stok ve parçalar", "Giriş, çıkış ve sayım", "cube-outline", "/(app)/parts"],
+      ["Raporlar", "Bakım ve güvenilirlik KPI", "bar-chart-outline", "/(app)/reports"],
+      ["Çevrimdışı kayıtlar", "Bekleyen saha işlemleri", "cloud-offline-outline", "/(app)/offline"],
+    ],
+  },
+  {
+    title: "Teknik araçlar",
+    items: [
+      ["Arıza Teşhis Merkezi", "Karar ağaçlarıyla teşhis", "git-branch-outline", "/(app)/diagnosis"],
+      ["Teknik kütüphane", "Standartlar ve saha notları", "library-outline", "/(app)/library"],
+      ["Hesaplama araçları", "10 teknik hesaplayıcı", "calculator-outline", "/(app)/calculators"],
+    ],
+  },
+  {
+    title: "Organizasyon",
+    items: [
+      ["Global arama", "Tüm firma kayıtlarında ara", "search-outline", "/(app)/search"],
+      ["Firma ve ekip", "Üyeler, roller ve davetler", "people-outline", "/(app)/company"],
+    ],
+  },
 ] as const;
 export default function More() {
   const t = useAppTheme(),
     router = useRouter(),
     { user } = useAuth();
   return (
-    <Screen>
+    <Screen bottomInset={false}>
       <PageHeader
         eyebrow="DİJİTAL MAKİNACI"
         title="Daha Fazla"
@@ -75,43 +56,47 @@ export default function More() {
           <Text style={styles.name}>{user?.name}</Text>
           <Text style={styles.mail}>{user?.email}</Text>
           <Text style={styles.company}>
-            {user?.company?.name} · {user?.company_role}
+            {user?.company?.name} · {roleLabel(user?.company_role)}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#fff" />
       </Pressable>
-      <SectionTitle title="Operasyon modülleri" />
-      <View style={styles.list}>
-        {items.map(([title, body, icon, path]) => (
-          <Pressable
-            key={title}
-            onPress={() => router.push(path)}
-            style={({ pressed }) => [
-              styles.item,
-              {
-                backgroundColor: t.colors.surface,
-                borderColor: t.colors.line,
-                opacity: pressed ? 0.75 : 1,
-              },
-            ]}
-          >
-            <View
-              style={[styles.itemIcon, { backgroundColor: t.colors.raised }]}
-            >
-              <Ionicons name={icon} size={22} color={t.colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.itemTitle, { color: t.colors.text }]}>
-                {title}
-              </Text>
-              <Text style={[styles.itemBody, { color: t.colors.muted }]}>
-                {body}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={t.colors.muted} />
-          </Pressable>
-        ))}
-      </View>
+      {groups.map((group) => (
+        <View key={group.title} style={styles.group}>
+          <SectionTitle title={group.title} />
+          <View style={styles.list}>
+            {group.items.map(([title, body, icon, path]) => (
+              <Pressable
+                key={title}
+                accessibilityRole="button"
+                accessibilityLabel={`${title}. ${body}`}
+                onPress={() => router.push(path)}
+                style={({ pressed }) => [
+                  styles.item,
+                  {
+                    backgroundColor: t.colors.surface,
+                    borderColor: t.colors.line,
+                    opacity: pressed ? 0.75 : 1,
+                  },
+                ]}
+              >
+                <View style={[styles.itemIcon, { backgroundColor: t.colors.raised }]}>
+                  <Ionicons name={icon} size={22} color={t.colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.itemTitle, { color: t.colors.text }]}>
+                    {title}
+                  </Text>
+                  <Text style={[styles.itemBody, { color: t.colors.muted }]}>
+                    {body}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={t.colors.muted} />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ))}
       {user?.platform_admin ? (
         <>
           <SectionTitle title="Platform yönetimi" />
@@ -158,6 +143,7 @@ const styles = StyleSheet.create({
   mail: { color: "#C9D8E1", fontSize: 12 },
   company: { color: "#8FB5FF", fontSize: 11, fontWeight: "800", marginTop: 3 },
   list: { gap: 9 },
+  group: { gap: 10 },
   item: {
     minHeight: 72,
     borderWidth: 1,

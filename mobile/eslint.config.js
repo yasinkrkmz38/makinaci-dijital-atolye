@@ -4,7 +4,7 @@ const tsPlugin=require('@typescript-eslint/eslint-plugin');
 const hooks=require('eslint-plugin-react-hooks');
 
 module.exports=[
-  {ignores:['node_modules/**','.expo/**','android/**','coverage/**']},
+  {ignores:['node_modules/**','.expo/**','android/**','coverage/**','dist/**','dist-android/**']},
   js.configs.recommended,
   {files:['eslint.config.js'],languageOptions:{globals:{require:'readonly',module:'readonly'}}},
   {

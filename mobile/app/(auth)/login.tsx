@@ -51,6 +51,9 @@ export default function Login() {
         label="E-posta"
         placeholder="ornek@firma.com"
         keyboardType="email-address"
+        autoComplete="email"
+        textContentType="emailAddress"
+        returnKeyType="next"
       />
       <FormField
         control={control}
@@ -58,6 +61,10 @@ export default function Login() {
         label="Şifre"
         secureTextEntry
         allowPasswordReveal
+        autoComplete="current-password"
+        textContentType="password"
+        returnKeyType="done"
+        onSubmitEditing={() => void submit()}
       />
       <AppButton label="Giriş yap" onPress={submit} loading={isSubmitting} />
       <Link

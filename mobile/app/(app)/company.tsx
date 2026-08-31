@@ -22,6 +22,7 @@ import {
   StatusBadge,
 } from "@/components/ui";
 import { useAppTheme } from "@/theme/tokens";
+import { formatDate, roleLabel } from "@/utils/presentation";
 
 type Member = {
   id: number;
@@ -56,10 +57,6 @@ const roles: Array<{ label: string; value: CompanyRole }> = [
   { label: "Depo yöneticisi", value: "warehouse_manager" },
   { label: "Görüntüleyici", value: "viewer" },
 ];
-const roleLabel = (role: CompanyRole) =>
-  ([{ label: "Firma sahibi", value: "owner" }, ...roles].find(
-    (item) => item.value === role,
-  )?.label || role);
 const inviteSchema = z.object({
   email: z.string().trim().email("Geçerli bir e-posta girin"),
   role: z.enum([
@@ -270,7 +267,7 @@ export default function CompanyScreen() {
               <Card key={item.id}>
                 <Text style={[styles.name, { color: t.colors.text }]}>{item.email}</Text>
                 <Text style={[styles.detail, { color: t.colors.muted }]}>
-                  {roleLabel(item.role)} · Son tarih {new Date(item.expires_at).toLocaleDateString("tr-TR")}
+                  {roleLabel(item.role)} · Son tarih {formatDate(item.expires_at)}
                 </Text>
                 <View style={styles.buttonRow}>
                   <AppButton

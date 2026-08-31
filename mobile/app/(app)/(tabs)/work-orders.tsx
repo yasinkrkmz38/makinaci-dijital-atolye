@@ -8,12 +8,13 @@ import {
   AppButton,
   EmptyState,
   ErrorState,
+  FilterChip,
   PageHeader,
   Screen,
   SearchField,
   Skeleton,
 } from "@/components/ui";
-import { EntityRow } from "@/components/EntityRow";
+import { WorkOrderCard } from "@/components/WorkOrderCard";
 import { Pager } from "@/components/Pager";
 import { useAuth } from "@/providers/auth-provider";
 import { canUser } from "@/services/permissions";
@@ -30,7 +31,7 @@ export default function WorkOrders() {
     });
   const items = query.data?.items || [];
   return (
-    <Screen refreshing={query.isRefetching} onRefresh={query.refetch}>
+    <Screen bottomInset={false} refreshing={query.isRefetching} onRefresh={query.refetch}>
       <PageHeader
         eyebrow="SAHA OPERASYONU"
         title="İş Emirleri"
@@ -48,16 +49,18 @@ export default function WorkOrders() {
         onChange={(value)=>{setSearch(value);setPage(1)}}
         placeholder="İş emri veya makine ara"
       />
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        <AppButton
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <FilterChip
           label="Tümü"
           onPress={() => {setMine(false);setPage(1)}}
-          variant={mine ? "secondary" : "primary"}
+          selected={!mine}
+          icon="layers-outline"
         />
-        <AppButton
+        <FilterChip
           label="Bana atananlar"
           onPress={() => {setMine(true);setPage(1)}}
-          variant={mine ? "primary" : "secondary"}
+          selected={mine}
+          icon="person-outline"
         />
       </View>
       {query.isLoading ? (
@@ -69,19 +72,9 @@ export default function WorkOrders() {
         />
       ) : items.length ? (
         items.map((item) => (
-          <EntityRow
+          <WorkOrderCard
             key={item.id}
-            title={item.title}
-            subtitle={[
-              item.work_order_no,
-              item.machine_name,
-              item.assigned_member_name || item.assigned_user_name,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-            status={item.status}
-            meta={item.due_date}
-            icon="clipboard-outline"
+            item={item}
             onPress={() => router.push(`/(app)/work-orders/${item.id}`)}
           />
         ))

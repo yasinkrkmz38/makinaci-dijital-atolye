@@ -21,6 +21,8 @@ export const palette = {
   darkText: "#F3F7F9",
   darkMuted: "#A9BBC6",
   darkLine: "#2A4658",
+  cyan: "#1EA7A1",
+  slate: "#435865",
 };
 export const spacing = {
   xs: 4,
@@ -40,6 +42,21 @@ export const type = {
   heading: 28,
   hero: 34,
 };
+export const typography = {
+  hero: { fontSize: 32, lineHeight: 38, fontWeight: "900" as const },
+  h1: { fontSize: 28, lineHeight: 34, fontWeight: "900" as const },
+  h2: { fontSize: 20, lineHeight: 26, fontWeight: "900" as const },
+  h3: { fontSize: 17, lineHeight: 23, fontWeight: "800" as const },
+  body: { fontSize: 15, lineHeight: 22, fontWeight: "400" as const },
+  bodyStrong: { fontSize: 14, lineHeight: 20, fontWeight: "800" as const },
+  caption: { fontSize: 12, lineHeight: 17, fontWeight: "600" as const },
+  overline: {
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "900" as const,
+    letterSpacing: 1.2,
+  },
+};
 
 export function themeFor(mode: "light" | "dark") {
   const dark = mode === "dark";
@@ -49,14 +66,21 @@ export function themeFor(mode: "light" | "dark") {
       background: dark ? palette.darkBg : palette.lightBg,
       surface: dark ? palette.darkSurface : palette.lightSurface,
       raised: dark ? palette.darkRaised : "#F7F9FB",
+      elevated: dark ? "#1C4055" : "#FFFFFF",
       text: dark ? palette.darkText : palette.black,
       muted: dark ? palette.darkMuted : palette.lightMuted,
       line: dark ? palette.darkLine : palette.lightLine,
+      divider: dark ? "#203D4F" : "#E4EBEF",
       primary: palette.blue,
+      primaryPressed: palette.blueDark,
       onPrimary: palette.white,
+      secondary: palette.cyan,
+      info: palette.blue,
       danger: palette.red,
       warning: palette.orange,
       success: palette.green,
+      disabled: dark ? "#415866" : "#AAB7BE",
+      scrim: "rgba(4, 15, 23, 0.58)",
       header: palette.navy,
     },
   };
