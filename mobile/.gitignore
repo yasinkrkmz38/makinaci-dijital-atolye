@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+dist-android/
+coverage/
+builds/
+*.apk
+*.aab
+.env
+android/.gradle/
+android/app/build/
+*.jks
+*.keystore
+credentials.json

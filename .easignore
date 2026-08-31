@@ -1,0 +1,40 @@
+# Dependencies are installed by EAS.
+node_modules/
+mobile/node_modules/
+
+# Secrets and local runtime data.
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+uploads/
+tmp/
+.temp/
+cache/
+logs/
+*.log
+
+# Generated test/build outputs must never enter the EAS source archive.
+coverage/
+mobile/coverage/
+mobile/.expo/
+mobile/dist/
+mobile/dist-android/
+mobile/builds/
+mobile/*.apk
+mobile/*.aab
+mobile/android/.gradle/
+mobile/android/app/build/
+
+# Local credentials and editor files.
+*.jks
+*.keystore
+credentials.json
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

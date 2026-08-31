@@ -2,6 +2,26 @@
 
 Bu dosya projedeki önemli teknik ve kullanıcıya dönük değişiklikleri kaydeder.
 
+## 2026-08-31
+
+### Native mobil CMMS temeli
+
+- Android/OkHttp'un ASCII dışı HTTP header değerini reddetmesi nedeniyle giriş isteğinin ağ hatasına dönüşmesi düzeltildi; `X-Device-Name` yazdırılabilir ASCII ile sınırlandı, gerileme testi eklendi ve `1.0.1` / version code `2` preview APK üretildi.
+- WebView içermeyen Expo SDK 57, React Native 0.86 ve TypeScript mobil uygulaması `mobile/` altında kuruldu.
+- SecureStore tabanlı kısa ömürlü bearer access token, tek kullanımlı refresh rotation, tekrar kullanımında cihaz oturumu iptali ve mobil push token migration'ı eklendi.
+- Giriş, kayıt, MFA ve şifre sıfırlama akışları mevcut kullanıcı ve firma verileri korunarak mobil API sözleşmesine bağlandı.
+- Beş sekmeli mobil navigasyon; dashboard, makine, iş emri, arıza, bakım, stok, teşhis, kütüphane, hesaplama, rapor, bildirim, hesap güvenliği ve global arama ekranlarıyla tamamlandı.
+- Kamera/galeri/belge ekleri, QR tarama, ekip daveti ve şifre yenileme deep link'leri, Expo push, biyometrik uygulama kilidi ve idempotent çevrimdışı saha kuyruğu eklendi.
+- Firma/ekip ekranına çalışma alanı değiştirme, üye/rol yönetimi, e-posta daveti, tekrar gönderme ve iptal eklendi.
+- İlk açılışa üç adımlı tanıtım akışı; hesap güvenliğine profil adı düzenleme, şifre göster/gizle ve açık oturum süresi doldu uyarısı eklendi.
+- Arıza akışına gerçek teknisyen atama, fotoğraf/belge, çevrimdışı medya koruması, ayrıntılı kapatma ve zaman çizelgesi eklendi.
+- Makine detayı çevrimdışı önbelleğe, bakım taslağı çevrimdışı kuyruğa; makine, bakım, arıza, iş emri ve stok listeleri sunucu sayfalamasına bağlandı.
+- Android yerel proje `pro.dijitalmakinaci.app`, `1.0.0` ve version code `1` ile üretildi; preview APK ve production AAB EAS profilleri tanımlandı.
+- Mobil TypeScript/lint, 24 mobil birim testi, 13 sunucu sözleşme/alan testi ve 1.602 modüllü Android Metro/Hermes production export başarıyla doğrulandı.
+- Expo Doctor 20/21 sonuç verdi; tek uyarı teslimat için bilerek repoda tutulan ve son app.json ile yeniden üretilmiş `android/` klasörüne ilişkindir.
+- EAS projesi `75eedfb8-b714-430e-8510-41ea33e55718` kimliğiyle bağlandı; `9f8bdcf9-e892-4d7b-be04-6615af244209` preview build'i kurulabilir APK, `e5d31386-a98d-4b8a-a349-0babeff9c729` production build'i Play Store AAB çıktısıyla tamamlandı.
+- APK ve AAB `mobile/builds/` altına indirilip SHA-256 ve Android manifest arşiv yapılarıyla doğrulandı; binary çıktılar `.gitignore` ve `.easignore` ile kaynak/EAS paketlerinden çıkarıldı.
+
 ## 2026-08-29
 
 ### V17.5.0 public site ve dönüşüm deneyimi

@@ -1,0 +1,108 @@
+{
+  "expo": {
+    "name": "Dijital Makinacı",
+    "slug": "dijital-makinaci",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "icon": "../icon-512.png",
+    "scheme": "dijitalmakinaci",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "pro.dijitalmakinaci.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Dijital Makinacı hesabınıza güvenli ve isteğe bağlı giriş için Face ID kullanılır.",
+        "NSCameraUsageDescription": "Makine QR kodlarını taramak ve bakım kayıtlarına fotoğraf eklemek için kamera kullanılır.",
+        "NSPhotoLibraryUsageDescription": "Bakım, arıza ve iş emri kayıtlarına fotoğraf eklemek için galeri kullanılır."
+      }
+    },
+    "android": {
+      "package": "pro.dijitalmakinaci.app",
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "foregroundImage": "../icon-512.png",
+        "backgroundColor": "#102838"
+      },
+      "predictiveBackGestureEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "dijitalmakinaci.pro",
+              "pathPrefix": "/app"
+            },
+            {
+              "scheme": "dijitalmakinaci"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Makine QR kodlarını taramak ve saha kayıtlarına fotoğraf eklemek için kameraya izin verin."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Saha kayıtlarına fotoğraf eklemek için galeri erişimine izin verin."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "../icon-192.png",
+          "color": "#2D6CDF"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Dijital Makinacı hesabınıza güvenli giriş için Face ID kullanın."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#102838",
+          "image": "../icon-512.png",
+          "imageWidth": 160
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "https://dijitalmakinaci.pro",
+      "eas": {
+        "projectId": "75eedfb8-b714-430e-8510-41ea33e55718"
+      },
+      "router": {}
+    },
+    "owner": "ykorkmaz38"
+  }
+}

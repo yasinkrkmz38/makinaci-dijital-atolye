@@ -32,6 +32,7 @@ Kalıcı proje bağlamı için `PROJECT.md`, sürüm geçmişi için `CHANGELOG.
 - `ADMIN_MFA_REQUIRED`: Platform yöneticilerinde MFA'yı zorunlu tutar; varsayılan `true`
 - `STORAGE_*`: S3 uyumlu object storage endpoint, bucket ve erişim bilgileri
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`: PWA push bildirim anahtarları
+- `EXPO_ACCESS_TOKEN`: Expo push güvenlik anahtarı; erişim kontrollü Expo push projelerinde isteğe bağlıdır
 
 Uygulama sürümünün tek kaynağı `package.json` dosyasıdır. Sürüm değişikliğinden sonra `npm run version:sync` çalıştırılır; `APP_VERSION` ortam değişkeni kullanılmaz.
 
@@ -56,6 +57,10 @@ Gerçek anahtarları repoya eklemeyin.
 - `domain.js`, `tests/*.test.js`: test edilen kritik iş kuralları
 - `storage.js`: S3 uyumlu ek dosya depolama katmanı
 - `start.js`: güvenli production başlangıcı
+- `mobile/`: WebView kullanmayan Expo/React Native Android ve gelecekteki iOS istemcisi
+- `migrations/005_mobile_auth.sql`: dönen mobil refresh anahtarları, native push cihaz kayıtları, çevrimdışı istek tekilliği ve arıza olay geçmişi
+
+Mobil istemcinin kurulabilir preview APK'sı ve Play Store'a uygun production AAB'si EAS üzerinde başarıyla üretilmiştir. Yerel binary teslimler `mobile/builds/` altında tutulur ve Git'e eklenmez; build kimlikleri ile SHA-256 özetleri `mobile/BUILD_STATUS.md` içindedir.
 
 Eski `v1621-*`, `appstore-v17.css`, `public/` ve `v71/` kopyaları kaldırılmıştır. Eski asset URL'leri yalnızca geçiş uyumluluğu için canonical URL'lere 308 yönlendirmesi döndürür.
 
